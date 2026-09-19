@@ -6,6 +6,20 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Cupons de desconto no painel (2026-09-19)
+- **Cadastro e gestão de cupons** em `/admin/cupons`: código, desconto (porcentagem ou valor em reais), quantidade de usos, validade e liga/desliga. Até aqui o organizador não tinha **nenhuma** forma de dar desconto — sobravam baixar o preço do kit, que muda o valor para todo mundo, ou acertar por fora e receber o atleta sem pagamento registrado. As duas quebram o caixa e nenhuma é reversível.
+- **O cupom pertence a um evento**, não ao organizador (diferente de equipe e patrocinador): desconto é sempre decisão sobre uma prova específica, com preço, data e lotação próprios.
+- **Código único por evento, não global.** Unique global acoplaria organizadores diferentes: um passaria a bloquear "CORRE10" para o outro, e o erro contaria que o código existe num lugar que ele não pode ver — o mesmo tipo de vazamento entre inquilinos que o BUG-005 representa. Como a busca do cupom sempre parte do evento, não há ambiguidade a resolver.
+- **O contador de uso nunca é campo de formulário** e o incremento é atômico: `UPDATE` condicional (`whereColumn('used_quantity', '<', 'total_quantity')`) em vez de ler-conferir-gravar. Duas inscrições disputando a última vaga — o que acontece de verdade quando um cupom viraliza num grupo de WhatsApp — resolvem-se no banco: a que chega depois afeta 0 linhas e sai com `false`. Ler o saldo antes e gravar depois deixaria uma janela em que o valor já está velho, e o limite estouraria.
+- **Três travas passam a valer depois do primeiro uso**: o cupom não pode mais ser apagado (a saída é desativar), e código e evento ficam congelados — trocar o código reescreveria o passado, trocar o evento moveria um desconto concedido para uma prova onde ele nunca valeu. As três vivem no controller, não só na tela.
+- **Esgotado ou vencido é estado sem volta**: lê como inativo, o toggle fica desabilitado e o servidor recusa a troca nos dois sentidos. Enquanto não estiver encerrado, o liga/desliga continua livre, mesmo com usos já registrados.
+- A quantidade total não desce abaixo do que já foi usado — a listagem mostraria "geradas 1 / utilizadas 3", que não quer dizer nada.
+- **Primeira tela do painel com formulário em modal.** Os outros cinco cadastros usam página cheia; cupom é registro curto e de vida curta, e sair da lista para criar um e voltar para criar o próximo seria atrito à toa. Quando o servidor recusa, o modal reabre sozinho com o que foi digitado, na mesma trava de campos.
+- O campo de código valida em tempo real (maiúsculas enquanto digita, aviso imediato de formato); a repetição continua sendo conferida no servidor, onde está o banco.
+- **Sem `organizer_id` na tabela**: o vínculo com o organizador passa pelo evento, como em `event_kits` e `event_modalities`. E `discount_type` é `string` e não `enum` — dev roda Postgres e produção roda MySQL (ADR 0005), e `enum` vira coisa diferente em cada um.
+- A aplicação do cupom na inscrição do atleta **não entrou nesta fatia**: o fluxo de dinheiro (`SubscribeController` → `PixController` → webhook) não foi tocado. A regra de consumo já nasceu pronta e testada (`Coupon::registrarUso()`), então a fatia seguinte é chamá-la. Spec: `docs/specs/cupons-de-desconto.md`.
+- 48 testes novos. Suíte: **208 testes, 579 asserções**.
+
 ### Botão flutuante de WhatsApp nas páginas públicas (2026-09-01)
 - **Botão fixo no canto inferior direito**, em todas as páginas públicas (home, página do evento, minhas inscrições). Abre `wa.me` em aba nova com a mensagem "Olá, vim do site do Corre Virtual" já digitada — serve de rastreio: quem chega por ali se identifica sem precisar perguntar.
 - **Número e mensagem em `config/contato.php`** (`WHATSAPP_NUMERO` / `WHATSAPP_MENSAGEM` no `.env`), não na view: número de contato muda (troca de chip, atendimento terceirizado) e isso não é motivo para deploy. **Número vazio esconde o botão** — melhor nenhum botão que um que leva a lugar nenhum.

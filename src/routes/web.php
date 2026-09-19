@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\EventModalityController as AdminModalityController;
 use App\Http\Controllers\Admin\EventKitController as AdminKitController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\SponsorController as AdminSponsorController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
 use App\Http\Controllers\Admin\CatalogoController as AdminCatalogoController;
@@ -133,6 +134,17 @@ Route::middleware(['auth', 'organizer.admin'])
         Route::get('catalogo/{tipo}/novo', [AdminCatalogoController::class, 'novo'])
             ->whereIn('tipo', ['modalidades', 'kits'])
             ->name('catalogo.novo');
+
+        // Cupons: uma tela só, com o formulário num modal da própria listagem —
+        // por isso sem `create` e sem `edit`. O cupom pertence a um evento, mas
+        // a rota não é aninhada: quem chega aqui quer ver os descontos que estão
+        // de pé agora, não navegar evento por evento.
+        Route::resource('cupons', AdminCouponController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['cupons' => 'id']);
+
+        Route::patch('cupons/{id}/status', [AdminCouponController::class, 'status'])
+            ->name('cupons.status');
 
         // Equipes pertencem ao organizador, não ao evento.
         Route::resource('equipes', AdminTeamController::class)

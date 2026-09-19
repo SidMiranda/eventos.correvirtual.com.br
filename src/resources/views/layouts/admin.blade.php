@@ -126,6 +126,7 @@
             --icone-eventos:     #1c7a4f;  /* verde: o que está por vir */
             --icone-modalidades: #b45309;  /* âmbar: as distâncias */
             --icone-kits:        #7c3aed;  /* roxo: o que o atleta recebe */
+            --icone-cupons:      #4338ca;  /* índigo: o que barateia o kit */
             --icone-equipes:     #be185d;  /* magenta: gente */
             --icone-patrocinadores: #0f766e;  /* teal: dinheiro que entra */
         }
@@ -146,6 +147,9 @@
 
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-kits .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-kits .nav-link-icon .feather { color: var(--icone-kits); }
+
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-cupons .nav-link-icon,
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-cupons .nav-link-icon .feather { color: var(--icone-cupons); }
 
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-equipes .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-equipes .nav-link-icon .feather { color: var(--icone-equipes); }
@@ -263,6 +267,12 @@
                            href="{{ route('admin.kits.geral') }}">
                             <div class="nav-link-icon"><i data-feather="package"></i></div>
                             Kits
+                        </a>
+
+                        <a class="nav-link nav-icone-cupons {{ request()->routeIs('admin.cupons.*') ? 'active' : '' }}"
+                           href="{{ route('admin.cupons.index') }}">
+                            <div class="nav-link-icon"><i data-feather="tag"></i></div>
+                            Cupons
                         </a>
 
                         <a class="nav-link nav-icone-equipes {{ request()->routeIs('admin.equipes.*') ? 'active' : '' }}"

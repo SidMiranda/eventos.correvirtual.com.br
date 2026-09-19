@@ -115,9 +115,13 @@ resource /admin/eventos/{evento}/modalidades
 resource /admin/eventos/{evento}/kits
 resource /admin/equipes               equipes
 resource /admin/patrocinadores        patrocinadores
+resource /admin/cupons                cupons (sem create/edit: o form e um modal)
+PATCH    /admin/cupons/{id}/status    liga/desliga o cupom
 ```
 
 Modalidades e kits são aninhados em evento de propósito: eles não existem fora de um evento, e a rota aninhada torna impossível cadastrar um kit sem dizer de qual evento é.
+
+Cupom também pertence a um evento, mas a rota **não** é aninhada: quem abre essa tela quer ver os descontos que estão de pé agora, em todos os eventos, e não navegar prova por prova. O evento entra como campo do formulário. Ver `docs/specs/cupons-de-desconto.md`.
 
 ### Visual
 
