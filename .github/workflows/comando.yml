@@ -1,0 +1,51 @@
+# Roda um comando artisan em produção, pelo botão "Run workflow" do GitHub.
+#
+# Existe porque ninguém precisa ter SSH na VPS para operar o sistema: criar
+# admin, gerar OG, listar e limpar dados de teste. Entra na VPS com os mesmos
+# secrets do deploy — é o mesmo nível de confiança, restrito a quem tem acesso
+# de escrita neste repositório. A saída do comando fica no log da execução.
+#
+# Uso: Actions → "Comando em produção" → Run workflow → comando, sem o
+# "php artisan" (ex.: base:limpar-testes --listar).
+
+name: Comando em produção
+
+on:
+  workflow_dispatch:
+    inputs:
+      comando:
+        description: 'Comando artisan, sem o "php artisan" (ex.: base:limpar-testes --listar)'
+        required: true
+        type: string
+
+jobs:
+  comando:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executar na VPS
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          # Passa pelo ambiente, não interpolado direto no script: é a forma
+          # recomendada pela action e evita o texto do input virar código.
+          COMANDO: ${{ inputs.comando }}
+          QUEM: ${{ github.actor }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          envs: COMANDO,QUEM
+          script: |
+            set -euo pipefail
+            cd /home/correvirtual
+
+            echo "▶ ${QUEM} pediu: php artisan ${COMANDO}"
+            echo "────────────────────────────────────────"
+
+            # --no-interaction: sem terminal, uma pergunta do comando travaria
+            # a execução até o timeout. Comando que precisa confirmar recebe a
+            # resposta padrão (que, nos deste projeto, é sempre a segura).
+            docker exec corre_app php artisan ${COMANDO} --no-interaction
+
+            echo "────────────────────────────────────────"
+            echo "✅ Terminou."

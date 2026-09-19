@@ -90,6 +90,22 @@ zcat /opt/backups/corre/webcit29_eventos_prod_AAAA-MM-DD_HHMM.sql.gz \
   | mysql --host=srv238.prodns.com.br --user=<usuario> -p <banco_destino>
 ```
 
+## Rodar um comando em produção sem SSH
+
+Desde 2026-09-20 existe o workflow **"Comando em produção"** (`.github/workflows/comando.yml`): no GitHub, Actions → Comando em produção → *Run workflow* → digite o comando artisan **sem** o `php artisan` (ex.: `base:limpar-testes --listar`). Ele entra na VPS com os mesmos secrets do deploy e roda `docker exec corre_app php artisan <comando> --no-interaction`; a saída fica no log da execução. Vale para `admin:criar`, `og:gerar`, `base:limpar-testes` e qualquer outro — quem tem escrita no repositório tem o mesmo nível de confiança do deploy.
+
+Nasceu porque a senha do root da VPS não estava à mão e nenhuma chave desta máquina era aceita lá. Se um dia precisar de SSH mesmo assim: `ssh root@143.95.218.62 -p 22022` (a senha está no painel da Hostgator, onde também se redefine).
+
+### Limpar os dados de teste da produção
+
+`base:limpar-testes` apaga os seis eventos mocados (por slug, ver o comando) e **todo** o histórico de inscrição e pagamento; atletas e eventos reais ficam. A ordem segura, sempre pelo workflow acima:
+
+1. `base:limpar-testes --listar` — imprime usuários, eventos, cada inscrição com dono e evento (marcando o que está órfão), cupons e totais. **Leia antes de apagar**: se houver inscrição real de atleta em evento real, pare aqui — o comando não distingue.
+2. `base:limpar-testes` (sem `--force`) — simulação: mostra as contagens e os eventos que sairiam.
+3. `base:limpar-testes --force --evento-de-teste=<slug>` — apaga de verdade, numa transação. `--evento-de-teste` leva junto o evento de teste do fluxo (com kits, modalidades e cupons); sem a opção, ele fica.
+
+O backup diário das 03:20 (seção "Backup do banco") é a rede se algo sair errado.
+
 ## Painel administrativo
 
 O painel vive em `/admin` (ver `docs/specs/painel-admin.md`). Não existe tela para criar o primeiro administrador — é por linha de comando:

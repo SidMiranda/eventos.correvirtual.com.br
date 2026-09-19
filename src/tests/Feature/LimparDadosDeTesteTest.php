@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Coupon;
 use App\Models\Event;
 use App\Models\EventKit;
 use App\Models\EventModality;
@@ -113,5 +114,89 @@ class LimparDadosDeTesteTest extends TestCase
         $this->artisan('base:limpar-testes', ['--force' => true])->assertSuccessful();
 
         $this->assertDatabaseCount('users', 1);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | --listar e --evento-de-teste (2026-09-20)
+    |--------------------------------------------------------------------------
+    */
+
+    public function test_listar_mostra_o_banco_e_nao_apaga_nada(): void
+    {
+        $evento = $this->evento('corrida-teste-do-fluxo');
+        $inscricao = $this->inscricao($evento);
+        Coupon::factory()->create(['event_id' => $evento->id, 'code' => 'LISTA1']);
+
+        $this->artisan('base:limpar-testes', ['--listar' => true])
+            ->expectsOutputToContain('corrida-teste-do-fluxo')
+            ->expectsOutputToContain($inscricao->user->email)
+            ->expectsOutputToContain('LISTA1')
+            ->assertSuccessful();
+
+        $this->assertDatabaseCount('events', 1);
+        $this->assertDatabaseCount('subscriptions', 1);
+        $this->assertDatabaseCount('payments', 1);
+        $this->assertDatabaseCount('coupons', 1);
+    }
+
+    public function test_listar_conta_os_orfaos(): void
+    {
+        // Não dá para plantar um órfão de verdade: a FK barra, e o PRAGMA que
+        // a desligaria é ignorado dentro da transação do RefreshDatabase. O
+        // que este teste garante é que as consultas de órfão rodam e chegam à
+        // saída — num banco íntegro, zeradas.
+        $evento = $this->evento('carnarun-do-quarteto-2025');
+        $this->inscricao($evento);
+
+        $this->artisan('base:limpar-testes', ['--listar' => true])
+            ->expectsOutputToContain('inscrições sem evento=0')
+            ->expectsOutputToContain('pagamentos sem inscrição=0')
+            ->assertSuccessful();
+    }
+
+    public function test_sem_a_opcao_o_evento_de_teste_do_fluxo_fica(): void
+    {
+        $teste = $this->evento('corrida-teste-do-fluxo');
+
+        $this->artisan('base:limpar-testes', ['--force' => true])->assertSuccessful();
+
+        $this->assertDatabaseHas('events', ['id' => $teste->id]);
+    }
+
+    public function test_evento_de_teste_apontado_sai_com_kits_modalidades_e_cupons(): void
+    {
+        $teste = $this->evento('corrida-teste-do-fluxo');
+        $real = $this->evento('1a-oab-run-rosa-e-azul');
+        $this->inscricao($teste);
+        Coupon::factory()->create(['event_id' => $teste->id]);
+        $cupomReal = Coupon::factory()->create(['event_id' => $real->id]);
+
+        $this->artisan('base:limpar-testes', ['--force' => true, '--evento-de-teste' => 'corrida-teste-do-fluxo'])
+            ->expectsOutputToContain('corrida-teste-do-fluxo')
+            ->assertSuccessful();
+
+        $this->assertDatabaseMissing('events', ['id' => $teste->id]);
+        $this->assertDatabaseMissing('event_modalities', ['event_id' => $teste->id]);
+        $this->assertDatabaseMissing('event_kits', ['event_id' => $teste->id]);
+        $this->assertDatabaseMissing('coupons', ['event_id' => $teste->id]);
+        $this->assertDatabaseCount('subscriptions', 0);
+
+        // O real continua inteiro, cupom incluído.
+        $this->assertDatabaseHas('events', ['id' => $real->id]);
+        $this->assertDatabaseHas('coupons', ['id' => $cupomReal->id]);
+    }
+
+    public function test_slug_desconhecido_em_evento_de_teste_falha_sem_apagar(): void
+    {
+        $mocado = $this->evento('carnarun-do-quarteto-2025');
+        $this->inscricao($mocado);
+
+        $this->artisan('base:limpar-testes', ['--force' => true, '--evento-de-teste' => 'nao-existe'])
+            ->expectsOutputToContain('Nenhum evento com o slug')
+            ->assertFailed();
+
+        $this->assertDatabaseCount('events', 1);
+        $this->assertDatabaseCount('subscriptions', 1);
     }
 }

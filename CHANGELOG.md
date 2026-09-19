@@ -6,6 +6,12 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Comando em produção pelo GitHub, e a limpeza de teste com listagem (2026-09-20)
+- **Workflow "Comando em produção"** (`.github/workflows/comando.yml`, `workflow_dispatch`): roda `php artisan <comando>` na VPS pelo botão *Run workflow*, com os mesmos secrets do deploy, e mostra a saída no log. Nasceu porque a senha do root não estava à mão e nenhuma chave da máquina de desenvolvimento era aceita na VPS — e porque operar o sistema (criar admin, gerar OG, limpar base) não deveria depender de SSH. O comando entra pelo ambiente da action (`envs`), não interpolado no script, e leva `--no-interaction` para nunca travar esperando resposta.
+- **`base:limpar-testes --listar`**: imprime usuários, eventos com contagens, cada inscrição com dono e evento (marcando órfãos de evento ou usuário que não existe mais), cupons e totais. É o "revisar antes de apagar", pensado para ser lido no log do workflow.
+- **`base:limpar-testes --evento-de-teste=<slug>`**: apaga também o evento de teste do fluxo, com kits, modalidades e cupons — decisão do dono ao deixar a produção limpa antes das provas reais. Sem a opção, o comportamento é o de antes (o evento de teste fica). Slug desconhecido falha sem apagar nada. A limpeza passou a levar os cupons dos eventos apagados junto.
+- Roteiro completo no `docs/runbook.md` ("Rodar um comando em produção sem SSH"). 5 testes novos. Suíte: **253 testes, 760 asserções**.
+
 ### Cupom no checkout: desconto no valor cobrado e Pix do valor certo (2026-09-20)
 - **O atleta informa o cupom ao se inscrever.** Campo opcional no formulário, com **prévia ao vivo**: ao aplicar, um endpoint (`POST /subscribe/event/{id}/cupom`, logado, `throttle:20,1`) valida o código para o kit escolhido e mostra bruto, desconto e total antes do envio — sem criar nada nem gastar uso. O envio refaz todas as checagens: a prévia é conveniência, não autorização.
 - **A conta é em centavos inteiros** (`App\Services\PrecoDaInscricao`): `round(preço × 100)`, percentual arredondado meio para cima, teto no próprio valor, líquido por subtração de inteiros. A tela, a coluna `price` e o valor enviado ao Mercado Pago nunca discordam num centavo — 10% de R$ 89,90 é R$ 8,99 e cobra R$ 80,91, não `80.91000000001`. `Coupon::descontoSobre()` passou a delegar para a mesma conta: uma regra só.
