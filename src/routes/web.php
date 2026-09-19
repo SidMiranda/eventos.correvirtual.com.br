@@ -71,7 +71,12 @@ Route::get('/teste-pix', function () {
 
 });
 
-Route::post('/event-pay', [PixController::class, 'generatePix'])->name('event-pay');
+// `auth` explícito: o controller usa auth()->id() para só achar a inscrição de
+// quem está logado. Sem o middleware, um visitante caía num 404 seco em vez de
+// ser mandado para o login.
+Route::post('/event-pay', [PixController::class, 'generatePix'])
+    ->middleware('auth')
+    ->name('event-pay');
 
 /*
 |--------------------------------------------------------------------------
@@ -88,6 +93,12 @@ Route::get('/subscribe/event/{event_id}', [SubscribeController::class, 'showSubs
     ->name('subscribe');
 
 Route::post('/subscribe/event/{event_id}', [SubscribeController::class, 'subscribe']);
+
+// Prévia do cupom no formulário: valida e devolve os valores em JSON, sem
+// criar nada. O throttle é a defesa barata contra tentar códigos no chute.
+Route::post('/subscribe/event/{event_id}/cupom', [SubscribeController::class, 'previaDoCupom'])
+    ->middleware(['auth', 'throttle:20,1'])
+    ->name('subscribe.cupom');
 
 Route::post('/subscription/cancel', [SubscribeController::class, 'cancel'])
     ->middleware('auth')

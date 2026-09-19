@@ -14,6 +14,9 @@ class Subscription extends Model
         'event_id',
         'modality_id',
         'kit_id',
+        'list_price',
+        'discount_amount',
+        'coupon_id',
         'price',
         'bib_number',
         'status',
@@ -22,8 +25,24 @@ class Subscription extends Model
 
     protected $casts = [
         'confirmed_at' => 'datetime',
+        'list_price' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
         'price' => 'decimal:2',
     ];
+
+    /**
+     * `list_price` (preço do kit na hora) nunca fica vazio: sem cupom, é o
+     * próprio valor cobrado. O hook cobre factories, seeders e qualquer
+     * caminho antigo que crie inscrição informando só `price`.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Subscription $subscription) {
+            if ($subscription->list_price === null) {
+                $subscription->list_price = $subscription->price;
+            }
+        });
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -56,6 +75,11 @@ class Subscription extends Model
         return $this->belongsTo(EventKit::class);
     }
 
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Helpers
@@ -67,5 +91,25 @@ class Subscription extends Model
         return $this->payments()
             ->where('status', 'approved')
             ->exists();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Valor
+    |--------------------------------------------------------------------------
+    | `price` é o que foi cobrado; `list_price` o preço do kit na hora;
+    | `discount_amount` a diferença. O retrato é gravado na criação e não muda
+    | — é o que um relatório financeiro vai ler (docs/specs/cupons-de-desconto.md).
+    */
+
+    /** Cupom zerou o valor: confirmada sem passar pelo Pix. */
+    public function gratuita(): bool
+    {
+        return (float) $this->price <= 0;
+    }
+
+    public function temDesconto(): bool
+    {
+        return (float) $this->discount_amount > 0;
     }
 }

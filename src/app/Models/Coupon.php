@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PrecoDaInscricao;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -56,6 +57,12 @@ class Coupon extends Model
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /** As inscrições que usaram este cupom — é o histórico de "por quem". */
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
     }
 
     /*
@@ -180,21 +187,12 @@ class Coupon extends Model
     /**
      * Quanto este cupom abate de um valor.
      *
-     * O teto é o próprio valor: um cupom de R$ 50 num kit de R$ 30 abate R$ 30.
-     * Sem esse limite, a conta do checkout geraria cobrança negativa — que o
-     * Mercado Pago recusa, e tarde demais, já na frente do atleta.
+     * A conta mora em PrecoDaInscricao, em centavos inteiros — aqui é só o
+     * atalho. Uma regra só, para a tela, o banco e o Pix nunca discordarem.
      */
     public function descontoSobre(float $valor): float
     {
-        if ($valor <= 0) {
-            return 0.0;
-        }
-
-        $bruto = $this->ehPercentual()
-            ? $valor * ((float) $this->discount_value / 100)
-            : (float) $this->discount_value;
-
-        return round(min($bruto, $valor), 2);
+        return PrecoDaInscricao::descontoEmCentavos($this, PrecoDaInscricao::centavos($valor)) / 100;
     }
 
     /*

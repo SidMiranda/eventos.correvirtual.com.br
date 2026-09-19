@@ -51,7 +51,13 @@
                     </svg>
                     {{-- Usamos o explode para pegar apenas o primeiro nome do atleta --}}
                     <h3>Parabéns, {{ explode(' ', session('user_name', 'Atleta'))[0] }}!</h3>
-                    <p>Sua inscrição no evento <br><strong>{{ session('event_title') }}</strong><br> foi realizada com sucesso!</p>
+                    @if (session('inscricao_gratuita'))
+                        {{-- Cupom zerou o valor: não há Pix nem "pagar agora" — a
+                             inscrição já nasce confirmada, e o texto precisa dizer isso. --}}
+                        <p>Sua inscrição no evento <br><strong>{{ session('event_title') }}</strong><br> está confirmada — com o cupom, não há nada a pagar.</p>
+                    @else
+                        <p>Sua inscrição no evento <br><strong>{{ session('event_title') }}</strong><br> foi realizada com sucesso!</p>
+                    @endif
                 @elseif(session('modal_type') === 'cancel')
                     <svg class="anim-icon cancel-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                         <circle class="anim-circle" cx="26" cy="26" r="25" fill="none"/>

@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Subscriptions;
 
 use App\Http\Controllers\Controller;
-use App\Mail\SubscriptionConfirmed;
-use App\Models\Subscription;
 use App\Models\Payment;
+use App\Services\ConfirmacaoDeInscricao;
 use App\Services\MercadoPagoService;
 use App\Services\MercadoPagoWebhookSignature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
 class MercadoPagoWebhookController extends Controller
@@ -52,42 +50,20 @@ class MercadoPagoWebhookController extends Controller
 
                 // 5. Se o pagamento foi aprovado, atualizamos o banco de dados
                 if ($payment->status === 'approved' && isset($payment->external_reference)) {
-                    $subscriptionId = $payment->external_reference;
+                    $subscriptionId = (int) $payment->external_reference;
 
-                    // Update atômico e condicional: só marca 'paid' se ainda NÃO estava 'paid'.
-                    // O Mercado Pago pode reenviar a mesma notificação (retry) — sem essa condição,
-                    // duas notificações quase simultâneas passariam por uma checagem em separado
-                    // (ler status, depois atualizar) e as duas mandariam o e-mail de confirmação
-                    // duplicado. Com where('status', '!=', 'paid') o banco garante que só uma
-                    // consegue mudar a linha; $affected diz qual.
-                    $affected = Subscription::where('id', $subscriptionId)
-                        ->where('status', '!=', 'paid')
-                        ->update(['status' => 'paid']);
+                    // Update atômico e condicional + e-mail só na primeira vez: a regra
+                    // vive em ConfirmacaoDeInscricao, que a inscrição gratuita (cupom de
+                    // 100%) também usa. O Mercado Pago reenvia a mesma notificação (retry);
+                    // é o where('status', '!=', 'paid') de lá que impede e-mail duplicado.
+                    $confirmada = ConfirmacaoDeInscricao::confirmar($subscriptionId);
 
                     // Atualiza o status na tabela payments (usando o transaction_id)
                     Payment::where('transaction_id', $paymentId)->update(['status' => 'approved']);
 
-                    Log::info("Inscrição {$subscriptionId} atualizada com sucesso para PAGO!");
-
-                    // 5b. E-mail de confirmação só na primeira vez que a inscrição vira 'paid'.
-                    // Enviado depois da resposta HTTP (dispatchAfterResponse) pra não segurar o
-                    // webhook esperando o SMTP — o Mercado Pago tem timeout e reenvia se demorar.
-                    // Não há worker de fila rodando neste projeto (ver docs/backlog.md), então isso
-                    // roda de forma síncrona logo após a resposta ser enviada ao cliente, sem
-                    // precisar de infraestrutura nova.
-                    if ($affected === 1) {
-                        dispatch(function () use ($subscriptionId) {
-                            try {
-                                $subscription = Subscription::with(['event', 'modality', 'kit', 'user'])->find($subscriptionId);
-
-                                if ($subscription) {
-                                    Mail::to($subscription->user->email)->send(new SubscriptionConfirmed($subscription));
-                                }
-                            } catch (\Throwable $e) {
-                                Log::error("Falha ao enviar e-mail de confirmação da inscrição {$subscriptionId}: " . $e->getMessage());
-                            }
-                        })->afterResponse();
-                    }
+                    Log::info($confirmada
+                        ? "Inscrição {$subscriptionId} atualizada com sucesso para PAGO!"
+                        : "Inscrição {$subscriptionId} já estava paga — notificação repetida.");
                 }
             } catch (\Exception $e) {
                 Log::error("Erro ao processar Webhook do Mercado Pago: " . $e->getMessage());

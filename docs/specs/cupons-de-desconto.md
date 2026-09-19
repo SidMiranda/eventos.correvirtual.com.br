@@ -1,6 +1,6 @@
 # Cupons de desconto
 
-Status: Implementado (cadastro e gestão). Aplicação na inscrição do atleta: pendente.
+Status: Implementado — cadastro e gestão (2026-09-19) e aplicação na inscrição do atleta (2026-09-20).
 
 ## Problema
 
@@ -32,32 +32,33 @@ uso, rastreável, e que não toca no preço de tabela.
 - [x] O incremento do contador de uso não estoura o limite sob concorrência.
 - [x] Nenhum organizador enxerga, edita ou apaga cupom de outro, nem informando
       o id na URL.
-- [ ] O atleta informa um cupom ao se inscrever e o valor cobrado no Pix cai.
+- [x] O atleta informa um cupom ao se inscrever, vê o valor com desconto antes
+      de enviar, e o Pix sai com o valor já descontado — sempre com duas casas.
+- [x] Cupom que zera o valor confirma a inscrição na hora, sem gerar pagamento.
+- [x] Um cupom por inscrição. O uso é consumido de forma atômica na criação da
+      inscrição, e não volta se ela for cancelada.
+- [x] A inscrição guarda o próprio retrato financeiro (preço de tabela,
+      desconto, valor cobrado, cupom), para o financeiro futuro ler sem
+      reconstruir nada.
 
 ## Fora de escopo
 
-Desta fatia, de propósito:
+De propósito:
 
-- **A aplicação do cupom na inscrição.** O campo "tenho um cupom" na tela do
-  atleta, a conferência do código, o abatimento em `subscriptions.price` e o
-  valor que vai para o Mercado Pago ficam para a fatia seguinte. O fluxo de
-  dinheiro (`SubscribeController` → `PixController` → webhook) não foi tocado
-  aqui — é onde o BUG-005 ainda está aberto. A regra de consumo já existe e está
-  testada (`Coupon::registrarUso()`), então a fatia seguinte é chamá-la e gravar
-  o vínculo.
-- **Histórico de uso.** Não há tabela ligando cupom a inscrição: hoje o cupom só
-  sabe *quantas* vezes foi usado, não *por quem*. Quando a aplicação na inscrição
-  entrar, `subscriptions` ganha `coupon_id` e `discount_amount`, e aí o histórico
-  existe de graça.
 - **Cupom do organizador valendo em vários eventos.** Um cupom para a temporada
   inteira é pedido comum, mas mudaria a chave da tabela e a regra de unicidade.
   Enquanto houver um organizador com poucos eventos, recadastrar é mais barato
   que a estrutura.
 - **Cupom por modalidade ou por kit** (desconto só no 10 km, só no kit camiseta).
-- **Cupom de uso único por atleta.** O limite hoje é global do cupom, não por
-  pessoa: nada impede o mesmo atleta usar duas vezes, quando isso passar a ser
-  possível. Depende do histórico acima para ser implementável.
+- **Cupom de uso único por atleta.** O limite é global do cupom, não por pessoa.
+  Como a inscrição é única por `(event_id, user_id)`, o mesmo atleta só repete o
+  cupom se cancelar e se inscrever de novo — e aí gasta dois usos (ver
+  "Cancelamento" abaixo).
 - **Geração automática de códigos em lote.**
+- **Expirar inscrição pendente.** Uma inscrição com cupom que nunca é paga nem
+  cancelada segura o uso para sempre. É o mesmo buraco de sempre da cobrança
+  Pix vencida (`docs/specs/pagamentos-pix.md`, "Fora de escopo"), agora com uma
+  consequência a mais.
 
 ## Design
 
@@ -191,9 +192,116 @@ ainda não aconteceram — prova realizada não recebe cupom novo. Na edição, 
 evento atual do cupom entra na lista mesmo se a prova já passou, senão não daria
 para corrigir a descrição de um cupom antigo.
 
+### No checkout (2026-09-20)
+
+#### O retrato financeiro em `subscriptions`
+
+| Coluna | Tipo | Observação |
+|---|---|---|
+| `list_price` | decimal(8,2) nullable | preço do kit na hora da inscrição; o model copia de `price` quando não vem |
+| `discount_amount` | decimal(8,2), default 0 | o que o cupom abateu |
+| `price` | decimal(8,2) | **o que foi cobrado** (já existia; nada que lê muda) |
+| `coupon_id` | FK → coupons, nullable, `nullOnDelete` | qual cupom |
+
+Gravado na criação e nunca alterado. É isto que um relatório financeiro por
+evento vai ler — sem consultar o kit (que muda de preço) nem o cupom (que é
+editável). `nullOnDelete` e não `restrictOnDelete`: o valor está nas colunas,
+não no vínculo, e um `RESTRICT` criaria um modo de falha novo no cascade
+`event → coupons`.
+
+Linhas anteriores à migration receberam `list_price = price` — nenhuma teve
+desconto.
+
+#### A conta (`App\Services\PrecoDaInscricao`)
+
+Toda a conta é em **centavos inteiros**: `round(preço × 100)`, percentual
+`round(centavos × pct / 100)` (meio para cima), valor fixo como está, teto no
+próprio valor, líquido por subtração de inteiros. Só no fim vira reais. Assim a
+tela, a coluna `price` e o valor enviado ao Mercado Pago nunca discordam num
+centavo. `Coupon::descontoSobre()` delega para a mesma conta — uma regra só.
+
+| Kit | Cupom | Desconto | Cobrado |
+|---|---|---|---|
+| 89,90 | 10% | 8,99 | 80,91 |
+| 89,90 | 12,5% | 11,24 | 78,66 |
+| 59,90 | R$ 25 | 25,00 | 34,90 |
+| 30,00 | R$ 50 | 30,00 | 0,00 (gratuita) |
+| 89,90 | 100% | 89,90 | 0,00 (gratuita) |
+
+#### O fluxo (`SubscribeController::subscribe`)
+
+1. Evento aberto (regra que já existia).
+2. Valida modalidade, kit e o campo `cupom` (opcional).
+3. **Já inscrito?** Redireciona como sempre — antes de encostar no cupom, para
+   não gastar uso de quem não vai criar inscrição.
+4. `CupomNoCheckout::localizar()` acha o cupom **pelo evento** e valida
+   (existe, ativo, não vencido, com saldo). Recusa vira erro no campo `cupom`,
+   com o motivo.
+5. `PrecoDaInscricao::para(kit, cupom)`.
+6. Numa transação: `Coupon::registrarUso()` (o `UPDATE` condicional — se a
+   última vaga foi para outro atleta entre a prévia e o envio, é aqui que
+   aparece e a transação desfaz) e a criação da inscrição com o retrato.
+7. Valor zero → `ConfirmacaoDeInscricao::confirmar()` e a inscrição já nasce
+   `paid`, com `confirmed_at` e o e-mail de confirmação — sem `Payment`, sem
+   Pix. Senão, segue para "Minhas inscrições" e o Pix como sempre.
+
+**Um cupom por inscrição** é estrutural: uma coluna, um campo, e a unique
+`(event_id, user_id)` impede segunda inscrição no mesmo evento.
+
+#### Prévia (`POST /subscribe/event/{id}/cupom`)
+
+O formulário mostra o preço no kit e, ao aplicar o código, chama este endpoint
+(logado, `throttle:20,1`) que devolve bruto, desconto e total em JSON — **sem
+criar nada e sem consumir uso**. É conveniência: o envio refaz todas as
+checagens. O throttle é a defesa barata contra tentar códigos no chute.
+
+#### Cancelamento
+
+Cancelar uma inscrição pendente (que apaga a linha) **não devolve** o uso do
+cupom. Decisão do dono (2026-09-20): uso consumido é uso gasto, mesmo sem
+pagamento. Consequência assumida: quem se inscreve, cancela e se inscreve de
+novo com o mesmo cupom gasta dois usos; e o organizador pode ver "utilizadas
+10" com menos de 10 inscrições pagas.
+
+#### Uma confirmação só (`App\Services\ConfirmacaoDeInscricao`)
+
+O update condicional (`status != 'paid'` → `paid` + `confirmed_at`) e o e-mail
+só quando afetou uma linha saíram do webhook para um serviço, que a inscrição
+gratuita também chama. Efeito colateral bem-vindo: o webhook passou a gravar
+`confirmed_at`, que ficava vazio.
+
+#### O que foi fechado de passagem
+
+`PixController::generatePix` buscava a inscrição por id solto — qualquer
+usuário logado gerava Pix para qualquer inscrição. Passou a filtrar por
+`user_id` do logado (404 se não for dele) e a recusar inscrição já confirmada ou
+de valor zero. A rota `/event-pay` ganhou `auth` explícito.
+
 ## Plano de testes
 
-`tests/Feature/Admin/CouponCrudTest.php` — no molde de `SponsorCrudTest`, com
+**Checkout** — `tests/Feature/InscricaoComCupomTest.php`: retrato financeiro
+gravado e uso consumido; código normalizado; sem cupom nada muda; cupom de outro
+evento, inativo, vencido, esgotado ou inexistente recusado sem criar nada e sem
+mexer no contador; já inscrito não gasta uso; último uso disputado só um leva;
+cancelar não devolve; 100% confirma na hora sem `Payment` e com e-mail; valor em
+reais maior que o kit zera sem negativo; o e-mail renderiza com cupom e valor; o
+Pix é gerado com o valor já descontado; formulário mostra preço e campo; "Minhas
+inscrições" mostra o valor, o desconto e "Gratuita" sem botão de pagar; a prévia
+devolve os valores sem consumir, recusa com motivo, exige kit do evento, recusa
+evento fechado e exige login.
+
+`tests/Unit/PrecoDaInscricaoTest.php` — a tabela de valores acima, o ruído de
+float que não vaza, `paraInscricao()`, formatação, e `Coupon::descontoSobre()`
+concordando com a conta.
+
+`tests/Unit/ConfirmacaoDeInscricaoTest.php` — confirma uma vez com
+`confirmed_at`; segunda chamada não reconfirma nem reenvia e-mail.
+
+`PixControllerTest` — inscrição de outro usuário → 404; já paga e valor zero →
+recusa; sem login → login. `MercadoPagoWebhookControllerTest` — os cinco casos
+de antes, mais `confirmed_at` preenchido.
+
+**Cadastro** — `tests/Feature/Admin/CouponCrudTest.php` — no molde de `SponsorCrudTest`, com
 dois organizadores e um admin de apenas um deles:
 
 - Criação normalizando a entrada (`"  corre10 "` vira `CORRE10`).
@@ -226,5 +334,10 @@ dois organizadores e um admin de apenas um deles:
   requisição montada na mão.
 - Cupom esgotado ou vencido não reativa.
 - Nenhum organizador alcança cupom de outro.
+- O atleta vê o valor com desconto antes de enviar e o Pix cobra exatamente
+  esse valor, com duas casas.
+- Cupom que zera o valor confirma sem pagamento; nenhum `Payment` é criado.
+- O contador nunca passa do total, mesmo com dois atletas disputando a última
+  vaga.
 - A suíte passa inteira.
 - `CHANGELOG.md` e `docs/backlog.md` atualizados.

@@ -50,7 +50,11 @@
                                 Olá, <strong>{{ $subscription->user->name }}</strong>!
                             </p>
                             <p style="margin: 0 0 24px; font-size: 16px; color:#1a1a1a; line-height: 1.5;">
-                                Seu pagamento foi aprovado e sua inscrição no evento abaixo está confirmada. Vamos juntos!
+                                @if ($subscription->gratuita())
+                                    Sua inscrição no evento abaixo está confirmada — com o cupom, não houve cobrança. Vamos juntos!
+                                @else
+                                    Seu pagamento foi aprovado e sua inscrição no evento abaixo está confirmada. Vamos juntos!
+                                @endif
                             </p>
 
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eaf4fb; border-radius: 10px; margin-bottom: 24px;">
@@ -60,7 +64,19 @@
                                         <p style="margin:0 0 6px; font-size:14px; color:#1a1a1a;">📅 {{ $dataFormatada }}</p>
                                         <p style="margin:0 0 6px; font-size:14px; color:#1a1a1a;">📍 {{ $event->location }}</p>
                                         <p style="margin:0 0 6px; font-size:14px; color:#1a1a1a;">🏃 Modalidade: {{ $modality->name }}</p>
-                                        <p style="margin:0; font-size:14px; color:#1a1a1a;">🎒 Kit: {{ $kit->name }}</p>
+                                        <p style="margin:0 0 6px; font-size:14px; color:#1a1a1a;">🎒 Kit: {{ $kit->name }}</p>
+                                        <p style="margin:0; font-size:14px; color:#1a1a1a;">
+                                            💰 Valor:
+                                            @if ($subscription->gratuita())
+                                                gratuita
+                                            @else
+                                                R$ {{ number_format($subscription->price, 2, ',', '.') }}
+                                            @endif
+                                            @if ($subscription->coupon)
+                                                — cupom {{ $subscription->coupon->code }}
+                                                (−R$ {{ number_format($subscription->discount_amount, 2, ',', '.') }})
+                                            @endif
+                                        </p>
                                     </td>
                                 </tr>
                             </table>

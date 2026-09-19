@@ -28,11 +28,14 @@ Um atleta precisa conseguir ver os eventos de um organizador, escolher uma modal
 `POST /subscribe/event/{event_id}` (autenticado) → `SubscribeController::subscribe`.
 
 Comportamento atual:
-1. Busca o evento por ID (mesmo problema de escopo do item anterior — **BUG-005**, ainda aberto).
-2. Valida que `modality_id` e `kit_id` vieram no request **e** que existem em `event_modalities`/`event_kits` pertencendo a este `event_id` (`Rule::exists(...)->where('event_id', ...)`) — corrigido em 2026-07-30 (BUG-002). As colunas `subscriptions.modality_id`/`kit_id` agora são `foreignId` de verdade, com `restrictOnDelete()` (não dá pra apagar um kit/modalidade que já tem inscrição).
-3. Se já existe uma `Subscription` do usuário pra esse evento (só pode estar `pending` ou `paid` — ver "Cancelar inscrição" abaixo, cancelar apaga a linha) → redireciona pra "minhas inscrições" avisando que já está inscrito.
-4. Se não existe, cria uma nova `Subscription` com `status = pending`, `price = 0.05` **fixo (BUG-001 — deveria ser o preço do `EventKit` escolhido, ainda aberto)**, `bib_number = null`.
-5. Redireciona pra "minhas inscrições".
+1. Busca o evento por ID (mesmo problema de escopo do item anterior — **BUG-005**, ainda aberto) e recusa se não estiver com inscrições abertas.
+2. Valida que `modality_id` e `kit_id` vieram no request **e** que existem em `event_modalities`/`event_kits` pertencendo a este `event_id` (`Rule::exists(...)->where('event_id', ...)`) — corrigido em 2026-07-30 (BUG-002). As colunas `subscriptions.modality_id`/`kit_id` agora são `foreignId` de verdade, com `restrictOnDelete()` (não dá pra apagar um kit/modalidade que já tem inscrição). O campo `cupom` é opcional.
+3. Se já existe uma `Subscription` do usuário pra esse evento (só pode estar `pending` ou `paid` — ver "Cancelar inscrição" abaixo, cancelar apaga a linha) → redireciona pra "minhas inscrições" avisando que já está inscrito. Isso vem antes do cupom, para não gastar uso à toa.
+4. Se veio cupom, `App\Services\CupomNoCheckout::localizar()` acha e valida o código **pelo evento**; recusa vira erro no campo `cupom`. `App\Services\PrecoDaInscricao` faz a conta em centavos (2026-09-20, ver `docs/specs/cupons-de-desconto.md`).
+5. Numa transação: consome o uso do cupom (`Coupon::registrarUso()`, `UPDATE` condicional) e cria a `Subscription` com `status = pending`, `list_price` (preço do kit), `discount_amount`, `price` (o cobrado) e `coupon_id`. BUG-001 (preço fixo) foi corrigido em 2026-08-02 — `price` é o preço do kit, menos o desconto.
+6. Valor zero (cupom de 100%) → confirma na hora por `ConfirmacaoDeInscricao` (`paid`, `confirmed_at`, e-mail) e não gera Pix. Senão, redireciona pra "minhas inscrições", onde o atleta vê o valor (e o desconto) antes de pagar.
+
+Existe ainda `POST /subscribe/event/{event_id}/cupom` (autenticado, `throttle:20,1`) → `SubscribeController::previaDoCupom`: a prévia do formulário, que valida o código para o kit escolhido e devolve os valores em JSON sem criar nada.
 
 Não há verificação de `registration_deadline` nem de `max_participants` da modalidade (BUG-005, ainda aberto).
 
@@ -40,7 +43,7 @@ Não há verificação de `registration_deadline` nem de `max_participants` da m
 `GET /my-subscriptions` (autenticado) → `SubscribeController::mySubscriptions`. Lista inscrições do usuário logado, filtradas pelas que pertencem a eventos do organizador do domínio atual (`whereHas('event', ...)`) — este endpoint escopa por tenant corretamente.
 
 ### Cancelar inscrição
-`POST /subscription/cancel` (autenticado) → `SubscribeController::cancel`. Só permite cancelar se `status === 'pending'`. Ao cancelar, **deleta a linha** (não muda pra `status = cancelled`) e apaga `Payment`s pendentes associados.
+`POST /subscription/cancel` (autenticado) → `SubscribeController::cancel`. Só permite cancelar se `status === 'pending'`. Ao cancelar, **deleta a linha** (não muda pra `status = cancelled`) e apaga `Payment`s pendentes associados. O uso do cupom, se houve, **não volta** para o contador (decisão do dono, 2026-09-20).
 
 ## Bugs conhecidos nesta área
 

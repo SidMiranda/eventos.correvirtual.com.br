@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Subscriptions;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use App\Models\Subscription;
+use App\Exceptions\CupomRecusado;
+use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventKit;
-
-use App\Http\Controllers\Controller;
+use App\Models\Subscription;
+use App\Services\ConfirmacaoDeInscricao;
+use App\Services\CupomNoCheckout;
+use App\Services\PrecoDaInscricao;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class SubscribeController extends Controller
 {
@@ -51,15 +56,13 @@ class SubscribeController extends Controller
     public function mySubscriptions(Request $request)
     {
         // Busca as inscrições do usuário logado, filtrar por organizador e carrega a relação do evento
-        $subscriptions = Subscription::with(['event', 'modality', 'kit'])
+        $subscriptions = Subscription::with(['event', 'modality', 'kit', 'coupon'])
             ->where('user_id', auth()->id())
             ->whereHas('event', function ($query) use ($request) {
                 $query->where('organizer_id', $request->current_organizer_id);
             })
             ->orderBy('created_at', 'desc')
             ->get();
-
-        // dd($subscriptions); // Debug: Verificar os dados retornados
 
         return view('subscriptions.my', compact('subscriptions'));
     }
@@ -80,9 +83,11 @@ class SubscribeController extends Controller
         $request->validate([
             'modality_id' => ['required', 'integer', Rule::exists('event_modalities', 'id')->where('event_id', $event->id)],
             'kit_id'      => ['required', 'integer', Rule::exists('event_kits', 'id')->where('event_id', $event->id)],
+            'cupom'       => ['nullable', 'string', 'max:20'],
         ], [
             'required' => 'Por favor, selecione as opções de modalidade e kit.',
             'exists'   => 'A modalidade ou o kit selecionado não é válido para este evento.',
+            'cupom.max' => 'O código do cupom é curto: 6 ou 7 caracteres.',
         ]);
 
         $modalityInput = $request->input('modality_id');
@@ -94,6 +99,9 @@ class SubscribeController extends Controller
         // Busca a inscrição existente para este usuário neste evento.
         // Cancelar uma inscrição apaga a linha (ver cancel()), então uma inscrição
         // encontrada aqui só pode estar pending ou paid — nunca cancelled.
+        //
+        // Esta checagem vem ANTES de encostar no cupom: quem já está inscrito
+        // não vai criar inscrição nenhuma, e não pode gastar um uso à toa.
         $existingSubscription = Subscription::where('event_id', $event->id)
             ->where('user_id', auth()->id())
             ->first();
@@ -106,21 +114,110 @@ class SubscribeController extends Controller
             ]);
         }
 
-        Subscription::create([
-            'event_id'    => $event->id,
-            'user_id'     => auth()->id(),
-            'modality_id' => $modalityInput,
-            'kit_id'      => $kitInput,
-            'price'       => $kit->price,
-            'status'      => 'pending',
-            'bib_number'  => null,
-        ]);
+        try {
+            $cupom = CupomNoCheckout::localizar($event, $request->input('cupom'));
+            $preco = PrecoDaInscricao::para($kit, $cupom);
+
+            // Consumo do cupom e criação da inscrição na mesma transação: se a
+            // inscrição falhar, o uso volta sozinho. O registrarUso() é um
+            // UPDATE condicional — entre a prévia e o envio a última vaga pode
+            // ter ido para outro atleta, e é aqui que isso aparece.
+            $subscription = DB::transaction(function () use ($event, $modalityInput, $kitInput, $cupom, $preco) {
+                if ($cupom && ! $cupom->registrarUso()) {
+                    throw new CupomRecusado("O cupom \"{$cupom->code}\" acabou de atingir o limite de usos.");
+                }
+
+                return Subscription::create([
+                    'event_id'    => $event->id,
+                    'user_id'     => auth()->id(),
+                    'modality_id' => $modalityInput,
+                    'kit_id'      => $kitInput,
+                    'status'      => 'pending',
+                    'bib_number'  => null,
+                ] + $preco->paraInscricao());
+            });
+        } catch (CupomRecusado $e) {
+            return back()->withInput()->withErrors(['cupom' => $e->getMessage()]);
+        }
+
+        // Cupom que zerou o valor: não existe o que pagar, então não existe
+        // Pix. A inscrição confirma agora, pelo mesmo caminho que o webhook usa
+        // quando o pagamento cai — inclusive o e-mail.
+        if ($preco->gratuita()) {
+            ConfirmacaoDeInscricao::confirmar($subscription->id);
+
+            return redirect('/my-subscriptions')->with([
+                'modal_type'          => 'success',
+                'inscricao_gratuita'  => true,
+                'user_name'           => auth()->user()->name,
+                'event_title'         => $event->title,
+            ]);
+        }
 
         return redirect('/my-subscriptions')->with([
             'modal_type'  => 'success',
             'user_name'   => auth()->user()->name,
             'event_title' => $event->title,
         ]);
+    }
+
+    /**
+     * Prévia do cupom para o formulário: valida o código para o kit escolhido
+     * e devolve os valores, sem criar nada nem gastar uso.
+     *
+     * É conveniência, não autorização: o envio da inscrição refaz todas as
+     * checagens. Devolve JSON porque quem chama é o fetch() do formulário.
+     */
+    public function previaDoCupom(Request $request)
+    {
+        $event = Event::findOrFail($request->route('event_id'));
+
+        if (! $event->inscricoesAbertas()) {
+            return $this->previaRecusada('As inscrições deste evento não estão abertas.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'kit_id' => ['required', 'integer', Rule::exists('event_kits', 'id')->where('event_id', $event->id)],
+            'cupom'  => ['required', 'string', 'max:20'],
+        ], [
+            'kit_id.required' => 'Escolha o kit antes de aplicar o cupom.',
+            'kit_id.exists'   => 'O kit escolhido não é deste evento.',
+            'cupom.required'  => 'Digite o código do cupom.',
+            'cupom.max'       => 'O código do cupom é curto: 6 ou 7 caracteres.',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->previaRecusada($validator->errors()->first());
+        }
+
+        try {
+            $cupom = CupomNoCheckout::localizar($event, $request->input('cupom'));
+        } catch (CupomRecusado $e) {
+            return $this->previaRecusada($e->getMessage());
+        }
+
+        if (! $cupom) {
+            return $this->previaRecusada('Digite o código do cupom.');
+        }
+
+        $preco = PrecoDaInscricao::para(EventKit::findOrFail($request->input('kit_id')), $cupom);
+
+        return response()->json([
+            'ok'       => true,
+            'codigo'   => $cupom->code,
+            'bruto'    => $preco->brutoFormatado(),
+            'desconto' => $preco->descontoFormatado(),
+            'liquido'  => $preco->liquidoFormatado(),
+            'gratuita' => $preco->gratuita(),
+            'mensagem' => $preco->gratuita()
+                ? "Cupom {$cupom->code} aplicado: inscrição gratuita, sem nada a pagar."
+                : "Cupom {$cupom->code} aplicado: desconto de {$preco->descontoFormatado()}.",
+        ]);
+    }
+
+    private function previaRecusada(string $mensagem)
+    {
+        return response()->json(['ok' => false, 'mensagem' => $mensagem], 422);
     }
 
     public function cancel(Request $request)
@@ -138,13 +235,17 @@ class SubscribeController extends Controller
 
         // Só permite o cancelamento se a inscrição ainda estiver pendente de pagamento
         if ($subscription->status === 'pending') {
-            
+
             // Apaga possíveis registros de pagamento pendentes atrelados a esta inscrição para não gerar lixo na base
             if (class_exists(\App\Models\Payment::class)) {
                 \App\Models\Payment::where('subscription_id', $subscription->id)->delete();
             }
 
-            // Apaga fisicamente o registro de inscrição
+            // Apaga fisicamente o registro de inscrição.
+            //
+            // O uso do cupom, se houve, NÃO volta para o contador — decisão do
+            // dono (2026-09-20): uso consumido é uso gasto, mesmo sem pagamento.
+            // Ver docs/specs/cupons-de-desconto.md.
             $subscription->delete();
 
             return redirect()->back()->with([

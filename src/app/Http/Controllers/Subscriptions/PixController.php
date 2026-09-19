@@ -16,12 +16,33 @@ class PixController extends Controller
 
         $subscriptionId = $request->subscription_id;
 
-        $subscription = Subscription::find($subscriptionId);
+        // Só a inscrição de quem está logado. Até 2026-09-20 era um find($id)
+        // solto: qualquer usuário logado gerava Pix para qualquer inscrição.
+        // 404 e não 403 — não é para descobrir que a inscrição do outro existe.
+        $subscription = Subscription::where('id', $subscriptionId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
 
-        // Cobra o preço que a inscrição registrou — que é o preço do kit escolhido
-        // no momento em que ela foi criada (SubscribeController). Não existe mais
-        // sobreposição global de valor: os eventos de teste têm R$ 0,05 gravado
-        // como preço real do kit, e os cadastrados pelo painel têm o preço deles.
+        if ($subscription->status !== 'pending') {
+            return redirect('/my-subscriptions')->withErrors([
+                'pix' => 'Esta inscrição já está confirmada — não há o que pagar.',
+            ]);
+        }
+
+        // Inscrição gratuita (cupom que zerou o valor) já nasce confirmada e
+        // nunca chega aqui. É a rede de segurança: o Mercado Pago recusa
+        // cobrança de R$ 0,00, e o erro dele é pior que este aviso.
+        if ($subscription->gratuita()) {
+            return redirect('/my-subscriptions')->withErrors([
+                'pix' => 'Esta inscrição não tem valor a pagar.',
+            ]);
+        }
+
+        // Cobra o preço que a inscrição registrou — o preço do kit escolhido no
+        // momento em que ela foi criada, já com o desconto do cupom, se houve
+        // (SubscribeController + PrecoDaInscricao). Não existe sobreposição
+        // global de valor: os eventos de teste têm R$ 0,05 gravado como preço
+        // real do kit, e os cadastrados pelo painel têm o preço deles.
         $pix = MercadoPagoService::createPixPayment(
             (float) $subscription->price,
             auth()->user()->email,
@@ -47,7 +68,7 @@ class PixController extends Controller
             'payload' => json_encode($pix)
         ]);
 
-        return view('subscriptions.generate-pix', compact('pix', 'subscriptionId'));
+        return view('subscriptions.generate-pix', compact('pix', 'subscriptionId', 'subscription'));
 
     }
 

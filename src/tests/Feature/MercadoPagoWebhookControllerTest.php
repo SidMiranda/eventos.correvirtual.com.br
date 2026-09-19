@@ -100,6 +100,8 @@ class MercadoPagoWebhookControllerTest extends TestCase
 
         $response->assertOk();
         $this->assertSame('paid', $subscription->fresh()->status);
+        // confirmed_at ficava vazio até 2026-09-20: o webhook só mudava o status.
+        $this->assertNotNull($subscription->fresh()->confirmed_at);
         $this->assertSame('approved', Payment::where('transaction_id', 'mp-payment-123')->value('status'));
 
         Mail::assertSent(SubscriptionConfirmed::class, function ($mail) use ($subscription) {

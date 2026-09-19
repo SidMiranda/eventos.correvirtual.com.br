@@ -116,6 +116,64 @@ class PixControllerTest extends TestCase
             ->assertOk();
     }
 
+    public function test_generate_pix_refuses_subscription_of_another_user(): void
+    {
+        // Até 2026-09-20 era um find($id) solto: qualquer usuário logado gerava
+        // Pix para qualquer inscrição. 404 e não 403 — não é para descobrir que
+        // a inscrição do outro existe.
+        $subscription = $this->createPendingSubscription();
+        $intruso = User::factory()->create();
+
+        $mock = \Mockery::mock('alias:' . MercadoPagoService::class);
+        $mock->shouldReceive('createPixPayment')->never();
+
+        $this->actingAs($intruso)
+            ->post('/event-pay', ['subscription_id' => $subscription->id])
+            ->assertNotFound();
+
+        $this->assertDatabaseCount('payments', 0);
+    }
+
+    public function test_generate_pix_refuses_already_paid_subscription(): void
+    {
+        $subscription = $this->createPendingSubscription();
+        $subscription->update(['status' => 'paid']);
+
+        $mock = \Mockery::mock('alias:' . MercadoPagoService::class);
+        $mock->shouldReceive('createPixPayment')->never();
+
+        $this->actingAs($subscription->user)
+            ->post('/event-pay', ['subscription_id' => $subscription->id])
+            ->assertRedirect('/my-subscriptions')
+            ->assertSessionHasErrors('pix');
+
+        $this->assertDatabaseCount('payments', 0);
+    }
+
+    public function test_generate_pix_refuses_free_subscription(): void
+    {
+        // Inscrição gratuita já nasce paga e não chega aqui; é a rede de
+        // segurança para o Mercado Pago nunca receber R$ 0,00.
+        $subscription = $this->createPendingSubscription();
+        $subscription->update(['price' => 0, 'discount_amount' => $subscription->list_price]);
+
+        $mock = \Mockery::mock('alias:' . MercadoPagoService::class);
+        $mock->shouldReceive('createPixPayment')->never();
+
+        $this->actingAs($subscription->user)
+            ->post('/event-pay', ['subscription_id' => $subscription->id])
+            ->assertRedirect('/my-subscriptions')
+            ->assertSessionHasErrors('pix');
+    }
+
+    public function test_generate_pix_requires_login(): void
+    {
+        $subscription = $this->createPendingSubscription();
+
+        $this->post('/event-pay', ['subscription_id' => $subscription->id])
+            ->assertRedirect('/login');
+    }
+
     public function test_generate_pix_shows_friendly_error_when_mercadopago_fails(): void
     {
         $subscription = $this->createPendingSubscription();

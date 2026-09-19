@@ -313,3 +313,20 @@
     transform: translateY(-2px); /* Efeito de elevação sutil ao passar o mouse */
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
+
+/* =========================================
+   Valor da inscrição (com ou sem cupom)
+   ========================================= */
+.registration-list-card__valor span {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    color: #0d1b2a;
+}
+
+.registration-list-card__valor small,
+.registration-list-card__desconto {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: #1c7a4f;
+}

@@ -42,6 +42,25 @@
                 @if($subscription->bib_number) | Peito: {{ $subscription->bib_number }} @endif
             </p>
             <p>🎒 {{ $subscription->kit->name ?? 'Kit a definir' }}</p>
+            {{-- O valor: é o que o atleta precisa ver antes de clicar em pagar.
+                 Com cupom, o desconto aparece embaixo; grátis, diz que é grátis. --}}
+            <p class="registration-list-card__valor">
+                💰
+                @if ($subscription->gratuita())
+                    <span>Gratuita
+                        @if ($subscription->coupon) <small>(cupom {{ $subscription->coupon->code }})</small> @endif
+                    </span>
+                @else
+                    <span>
+                        R$ {{ number_format($subscription->price, 2, ',', '.') }}
+                        @if ($subscription->temDesconto())
+                            <small class="registration-list-card__desconto">
+                                cupom {{ $subscription->coupon?->code ?? 'aplicado' }}: −R$ {{ number_format($subscription->discount_amount, 2, ',', '.') }}
+                            </small>
+                        @endif
+                    </span>
+                @endif
+            </p>
         </div>
         <div class="registration-list-card__actions">
             @if($subscription->status === 'pending')
