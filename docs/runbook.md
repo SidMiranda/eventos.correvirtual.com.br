@@ -71,6 +71,8 @@ Roda sozinho: **cron da VPS, 03:20 todo dia**, via `/usr/local/bin/corre-backup.
 
 O script lê as credenciais do `src/.env` da aplicação — não tem senha escrita dentro dele.
 
+**Cópia fora da VPS (R2).** O cron deixa o dump só no disco da VPS. Desde 2026-09-20 existe `php artisan backup:enviar-r2 <arquivo>`, que sobe um dump para `backups/` no bucket privado `correvirtual-privado` (sem domínio público; só a credencial do app chega lá) e confere o tamanho depois. O workflow "Zerar uso em produção" (abaixo) faz isso antes de apagar qualquer coisa. Ligar isso ao cron diário — para toda madrugada deixar uma cópia off-site — está no `docs/backlog.md`.
+
 **Ele se recusa a aceitar um dump ruim.** Só vira backup o arquivo com mais de 1KB e que contenha `CREATE TABLE`; qualquer outra coisa é salva como `.SUSPEITO` e a rotação é suspensa, para que um dump quebrado nunca apague os backups bons.
 
 ```bash
@@ -96,9 +98,22 @@ Desde 2026-09-20 existe o workflow **"Comando em produção"** (`.github/workflo
 
 Nasceu porque a senha do root da VPS não estava à mão e nenhuma chave desta máquina era aceita lá. Se um dia precisar de SSH mesmo assim: `ssh root@143.95.218.62 -p 22022` (a senha está no painel da Hostgator, onde também se redefine).
 
-### Limpar os dados de teste da produção
+### Zerar o uso da produção (antes do lançamento)
 
-`base:limpar-testes` apaga os seis eventos mocados (por slug, ver o comando) e **todo** o histórico de inscrição e pagamento; atletas e eventos reais ficam. A ordem segura, sempre pelo workflow acima:
+Tudo que a produção teve de inscrição e pagamento antes do lançamento foi teste. O workflow **"Zerar uso em produção"** (`.github/workflows/zerar-uso.yml`) apaga o **uso** e mantém o **catálogo**:
+
+| Sai | Fica |
+|---|---|
+| inscrições, pagamentos, tokens de API, tokens de troca de senha, jobs | usuários, organizadores, eventos, modalidades, kits, equipes, patrocinadores, cupons |
+| contadores zerados: `coupons.used_quantity`, `event_kits.sold`, `event_modalities.registered_count` | |
+
+A ordem dentro do botão é a segurança, e não dá para pular etapa: **backup na VPS** (`corre-backup.sh`; se o dump de agora não for aceito, para) → **cópia no R2** (`backup:enviar-r2`) → **simulação** (`base:zerar-uso`, que lista cada inscrição com dono e evento) → e só se o input `confirmar` for exatamente `APAGAR`, o `base:zerar-uso --force`, numa transação.
+
+Uso: Actions → Zerar uso em produção → *Run workflow*. **Primeiro sem nada** no campo (faz o backup, a cópia e mostra o que sairia), leia o log; depois com `APAGAR`.
+
+### Limpar os dados de teste da produção (eventos mocados)
+
+`base:limpar-testes` é outra coisa: apaga os seis eventos mocados (por slug, ver o comando) e **todo** o histórico de inscrição e pagamento; atletas e eventos reais ficam. A ordem segura, sempre pelo workflow "Comando em produção":
 
 1. `base:limpar-testes --listar` — imprime usuários, eventos, cada inscrição com dono e evento (marcando o que está órfão), cupons e totais. **Leia antes de apagar**: se houver inscrição real de atleta em evento real, pare aqui — o comando não distingue.
 2. `base:limpar-testes` (sem `--force`) — simulação: mostra as contagens e os eventos que sairiam.

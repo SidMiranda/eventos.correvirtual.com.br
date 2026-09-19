@@ -6,6 +6,13 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Zerar o uso da produção com backup em dois lugares (2026-09-20)
+- **Workflow "Zerar uso em produção"** (`.github/workflows/zerar-uso.yml`): o sistema vai ao ar de verdade na segunda seguinte, e tudo que a produção tinha de inscrição e pagamento era teste. O botão apaga o **uso** (inscrições, pagamentos, tokens de API e de troca de senha, jobs) e zera os contadores que esse uso inflou (`coupons.used_quantity`, `event_kits.sold`, `event_modalities.registered_count`), mantendo o **catálogo** (eventos, modalidades, kits, equipes, patrocinadores, cupons) e os usuários.
+- **A ordem é a segurança e não dá para pular**: backup na VPS pelo `corre-backup.sh` (se o dump de agora não for aceito — o script recusa dump ruim —, o workflow para antes de encostar em qualquer coisa) → cópia no R2 → simulação com a lista de cada inscrição → e só com o input `confirmar=APAGAR`, o `--force` numa transação. Sem `APAGAR`, é um botão de "mostra o que sairia" que ainda deixa backup novo em dois lugares.
+- **`base:zerar-uso`** (novo): o comando por trás do botão. Diferente de `base:limpar-testes`, não apaga evento nenhum. Simula por padrão.
+- **`backup:enviar-r2 <arquivo>`** (novo): sobe um dump para `backups/` no bucket privado `correvirtual-privado`, em stream, e confere o tamanho depois. O backup diário ficava só no disco da VPS; agora existe o caminho para a cópia off-site — ligar ao cron está no backlog.
+- 5 testes novos. Suíte: **258 testes, 794 asserções**.
+
 ### Comando em produção pelo GitHub, e a limpeza de teste com listagem (2026-09-20)
 - **Workflow "Comando em produção"** (`.github/workflows/comando.yml`, `workflow_dispatch`): roda `php artisan <comando>` na VPS pelo botão *Run workflow*, com os mesmos secrets do deploy, e mostra a saída no log. Nasceu porque a senha do root não estava à mão e nenhuma chave da máquina de desenvolvimento era aceita na VPS — e porque operar o sistema (criar admin, gerar OG, limpar base) não deveria depender de SSH. O comando entra pelo ambiente da action (`envs`), não interpolado no script, e leva `--no-interaction` para nunca travar esperando resposta.
 - **`base:limpar-testes --listar`**: imprime usuários, eventos com contagens, cada inscrição com dono e evento (marcando órfãos de evento ou usuário que não existe mais), cupons e totais. É o "revisar antes de apagar", pensado para ser lido no log do workflow.

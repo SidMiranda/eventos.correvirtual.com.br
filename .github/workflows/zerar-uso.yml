@@ -1,0 +1,72 @@
+# Zera o USO da produção (inscrições, pagamentos, tokens, contadores) e mantém
+# o CATÁLOGO (eventos, modalidades, kits, equipes, patrocinadores, cupons) e os
+# usuários. Existe porque tudo que a produção tinha de uso antes do lançamento
+# era teste — ver App\Console\Commands\ZerarUsoDeProducao.
+#
+# A ordem é a segurança: backup na VPS → cópia no R2 → simulação → e só então,
+# se o input for exatamente APAGAR, o --force. Sem APAGAR, é um botão de
+# "mostra o que sairia" que ainda deixa um backup novo em dois lugares.
+
+name: Zerar uso em produção
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: 'Digite APAGAR para apagar de verdade. Vazio ou qualquer outra coisa só simula (e faz o backup mesmo assim).'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  zerar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backup, cópia no R2 e limpeza na VPS
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CONFIRMAR: ${{ inputs.confirmar }}
+          QUEM: ${{ github.actor }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          envs: CONFIRMAR,QUEM
+          script: |
+            set -euo pipefail
+            cd /home/correvirtual
+
+            echo "▶ ${QUEM} pediu para zerar o uso (confirmar='${CONFIRMAR:-}')"
+
+            echo "── 1/4 Backup na VPS"
+            /usr/local/bin/corre-backup.sh
+            ULTIMO=$(ls -t /opt/backups/corre/webcit29_eventos_prod_*.sql.gz | head -1)
+
+            # O script de backup recusa dump ruim e, nesse caso, o arquivo mais
+            # novo seria o de ONTEM. Apagar com backup velho não é apagar com
+            # backup: se o de agora não foi aceito, para aqui.
+            if [ -z "$(find "$ULTIMO" -mmin -10)" ]; then
+              echo "❌ O dump mais novo ($ULTIMO) tem mais de 10 minutos: o backup de agora não foi aceito. Nada foi apagado."
+              tail -5 /var/log/corre-backup.log || true
+              exit 1
+            fi
+            ls -lh "$ULTIMO"
+            tail -3 /var/log/corre-backup.log || true
+
+            echo "── 2/4 Cópia no R2 (bucket privado)"
+            NOME=$(basename "$ULTIMO")
+            docker cp "$ULTIMO" "corre_app:/tmp/${NOME}"
+            docker exec corre_app php artisan backup:enviar-r2 "/tmp/${NOME}" --no-interaction
+            docker exec corre_app rm -f "/tmp/${NOME}"
+
+            echo "── 3/4 Simulação"
+            docker exec corre_app php artisan base:zerar-uso --no-interaction
+
+            if [ "${CONFIRMAR:-}" = "APAGAR" ]; then
+              echo "── 4/4 Apagando de verdade"
+              docker exec corre_app php artisan base:zerar-uso --force --no-interaction
+              echo "✅ Uso zerado. Backup em ${ULTIMO} e em backups/${NOME} no R2."
+            else
+              echo "── 4/4 Sem APAGAR: nada foi apagado. Backup novo em ${ULTIMO} e em backups/${NOME} no R2."
+            fi
