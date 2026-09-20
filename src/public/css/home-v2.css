@@ -471,3 +471,23 @@ a.patrocinador:focus-visible img {
   .patrocinadores { gap: 20px 26px; }
   .patrocinador { width: 116px; height: 60px; }
 }
+
+/* ============ RESPIRO ENTRE AS SEÇÕES DA HOME ============
+   Pedido do dono (2026-09-19): tudo estava grudado. Dobra os dois
+   espaços — entre um bloco e o outro (60px → 120px, o .container do
+   event-cards.css) e entre o título e o bloco dele (3rem → 6rem, o
+   .block-header-title do global.css).
+
+   Fica aqui e não nesses arquivos porque só a home tem essas seções, e
+   com [id] / o seletor filho para vencer as regras de origem, que carregam
+   depois deste arquivo. As margens do container e do título colapsam
+   entre si, então o espaço entre blocos é o maior dos dois: 120px. */
+.container[id] {
+  margin-top: 120px;
+  margin-bottom: 120px;
+}
+
+.container[id] > .block-header-title {
+  margin-top: 6rem;
+  margin-bottom: 6rem;
+}

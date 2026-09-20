@@ -6,6 +6,9 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Mais respiro entre as seções da home (2026-09-19)
+- **Dobrou o espaço** entre os blocos da home (Próximos eventos, Patrocinadores, Realizados, Sobre nós): 60px → 120px entre um bloco e o outro, e 48px → 96px entre cada título e o bloco dele. Estava tudo grudado. Override em `home-v2.css` (só a home tem essas seções), sem tocar `global.css`/`event-cards.css`.
+
 ### Zerar o uso da produção com backup em dois lugares (2026-09-20)
 - **Workflow "Zerar uso em produção"** (`.github/workflows/zerar-uso.yml`): o sistema vai ao ar de verdade na segunda seguinte, e tudo que a produção tinha de inscrição e pagamento era teste. O botão apaga o **uso** (inscrições, pagamentos, tokens de API e de troca de senha, jobs) e zera os contadores que esse uso inflou (`coupons.used_quantity`, `event_kits.sold`, `event_modalities.registered_count`), mantendo o **catálogo** (eventos, modalidades, kits, equipes, patrocinadores, cupons) e os usuários.
 - **A ordem é a segurança e não dá para pular**: backup na VPS pelo `corre-backup.sh` (se o dump de agora não for aceito — o script recusa dump ruim —, o workflow para antes de encostar em qualquer coisa) → cópia no R2 → simulação com a lista de cada inscrição → e só com o input `confirmar=APAGAR`, o `--force` numa transação. Sem `APAGAR`, é um botão de "mostra o que sairia" que ainda deixa backup novo em dois lugares.
