@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     # e qualquer tratamento de imagem futuro (redimensionar, gerar miniatura)
     # também dependeria dele.
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_pgsql pdo_mysql mbstring bcmath zip gd
+    && docker-php-ext-install pdo_pgsql pdo_mysql mbstring bcmath zip gd exif
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

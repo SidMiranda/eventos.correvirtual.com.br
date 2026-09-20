@@ -6,6 +6,15 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Galeria de fotos na home, alimentada pelo painel (2026-09-20)
+- **Nova faixa "Galeria de fotos"** logo depois de "Próximos eventos", no estilo do feed do Instagram: 100% da largura, fotos quadradas, **6×2 no desktop** (12 fotos) e **2×3 no celular** (as 6 primeiras, o resto escondido por CSS). Sem foto ativa, a seção não existe. O menu do site ganhou "Fotos".
+- **Cadastro em `/admin/fotos`**, do organizador (como equipe e patrocinador), com **envio em lote** — até 10 por vez; o PHP do container aceita 16 MB por envio, então três ou quatro fotos de celular de cada vez, e o formulário diz isso. Legenda (vira `alt`/`title`), link opcional (o post no Instagram; exige `https://`), ordem e liga/desliga, foto a foto.
+- **Duas derivadas por foto, JPEG**: o quadrado da grade (700×700 — ~350 px na tela, o dobro no arquivo para não borrar em tela retina), recortado pelo centro e preenchendo, porque as fotos chegam de proporções variadas; e a foto inteira (cabendo em 1000 px), que aparece **em fade no hover**, centralizada sobre o fundo escuro, e some em fade ao sair. A inteira só é baixada no primeiro hover — 12 a mais na carga seria o dobro do peso à toa. O painel recebe foto de 3–5 MB e 4000 px; o original não fica.
+- **Foto em pé aparece em pé.** Foto de celular vem "deitada" nos pixels com a tag EXIF pedindo o giro; o navegador obedece, o GD não. A extensão `exif` entrou no `docker/php/Dockerfile` e a derivada é girada antes do recorte. Sem a extensão, grava sem girar — nunca falha por isso.
+- **Linha existe ⇒ imagem existe**: sem `has_image`. O painel cria a linha, grava a derivada e, se a gravação falhar, apaga a linha na hora — arquivo que falha é listado no erro sem derrubar os outros do lote.
+- "Fotos" e nunca "galeria" no código: `config/galeria.php` e `GaleriaDeRealizados` já são a vitrine de provas realizadas. Tabela `photos`, model `Photo`, seção `#fotos`.
+- Spec: `docs/specs/galeria-de-fotos.md`. 26 testes novos. Suíte: **284 testes, 899 asserções**.
+
 ### Mais respiro entre as seções da home (2026-09-19)
 - **Dobrou o espaço** entre os blocos da home (Próximos eventos, Patrocinadores, Realizados, Sobre nós): 60px → 120px entre um bloco e o outro, e 48px → 96px entre cada título e o bloco dele. Estava tudo grudado. Override em `home-v2.css` (só a home tem essas seções), sem tocar `global.css`/`event-cards.css`.
 

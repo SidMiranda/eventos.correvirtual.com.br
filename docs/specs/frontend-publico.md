@@ -200,3 +200,9 @@ Simula por padrão; só apaga com `--force`, dentro de uma transação. `LimparD
 ## Consequência assumida
 
 Um organizador que ainda não tem `banner.jpg` no bucket também não vai ter `og.jpg` — o cartão dele fica sem imagem, como já ficava antes. Vale para o organizador 2 (Borafitness), que hoje não tem imagem nenhuma no bucket.
+
+---
+
+# Fase 3 — galeria de fotos (2026-09-20)
+
+Uma faixa no estilo do feed do Instagram, logo depois de "Próximos eventos": 100% da largura, fotos quadradas, 6 colunas × 2 linhas no desktop (12 fotos) e 2 colunas × 3 linhas no celular (as 6 primeiras). As fotos vêm do painel (`/admin/fotos`), não do Instagram — decisão do dono. Sem foto ativa, a seção não aparece, e o menu do site ganhou o link "Fotos". Spec completo, com a tabela, o recorte e o tratamento de orientação EXIF, em `docs/specs/galeria-de-fotos.md`.

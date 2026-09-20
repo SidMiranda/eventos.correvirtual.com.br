@@ -38,6 +38,13 @@
         @endif
     </div>
 
+    {{-- A galeria de fotos, a 100% da largura, logo depois do que está
+         aberto: foto de prova é o que convence quem chegou agora. Sem foto,
+         a seção não existe. Cadastro em /admin/fotos. --}}
+    @if($fotos->isNotEmpty())
+        <x-app.fotos :fotos="$fotos" />
+    @endif
+
     {{-- Patrocinadores logo depois do que está aberto: é ali que o visitante
          ainda está olhando a página, e é o que a marca patrocinadora paga
          para ver. Antes ficava no fim, depois do "sobre nós".

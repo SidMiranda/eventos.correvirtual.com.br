@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Event;
+use App\Models\Photo;
 use App\Models\Sponsor;
 use App\Models\Team;
 
@@ -213,6 +214,36 @@ class Arquivos
         // O caminho é derivado do id e não muda quando o logo é trocado, e ele
         // sobe com Cache-Control: immutable — sem a versão, a troca não
         // apareceria para ninguém. Mesmo cuidado da arte do evento.
+        return $versao ? "{$url}?v={$versao}" : $url;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Foto da galeria da home
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Sempre existe: a linha só nasce com a imagem gravada (ver
+     * App\Support\ImagensDaFoto). A versão na URL é o updated_at, que o
+     * painel força ao trocar a imagem — o caminho é o mesmo e o CDN guarda a
+     * anterior.
+     */
+    public static function fotoDaGaleria(Photo $photo): string
+    {
+        return self::comVersaoDaFoto(self::url("organizadores/{$photo->organizer_id}/fotos/{$photo->id}.jpg"), $photo);
+    }
+
+    /** A foto toda, para o hover da grade. */
+    public static function fotoInteiraDaGaleria(Photo $photo): string
+    {
+        return self::comVersaoDaFoto(self::url("organizadores/{$photo->organizer_id}/fotos/{$photo->id}-inteira.jpg"), $photo);
+    }
+
+    private static function comVersaoDaFoto(string $url, Photo $photo): string
+    {
+        $versao = $photo->updated_at?->timestamp;
+
         return $versao ? "{$url}?v={$versao}" : $url;
     }
 

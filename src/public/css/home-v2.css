@@ -482,12 +482,91 @@ a.patrocinador:focus-visible img {
    com [id] / o seletor filho para vencer as regras de origem, que carregam
    depois deste arquivo. As margens do container e do título colapsam
    entre si, então o espaço entre blocos é o maior dos dois: 120px. */
-.container[id] {
+.container[id],
+.fotos-secao {
   margin-top: 120px;
   margin-bottom: 120px;
 }
 
-.container[id] > .block-header-title {
+.container[id] > .block-header-title,
+.fotos-secao > .block-header-title {
   margin-top: 6rem;
   margin-bottom: 6rem;
+}
+
+/* ============ GALERIA DE FOTOS (feed) ============
+   A única faixa da home a 100% da largura — por isso não é .container.
+   Quadrados encostados, como um feed: 6 colunas no desktop (12 fotos em duas
+   linhas), 3 no tablet, 2 no celular mostrando só as 6 primeiras. A home
+   manda 12; quem esconde o resto no celular é o nth-child. */
+.fotos-secao {
+  width: 100%;
+}
+
+.fotos {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.foto {
+  position: relative;
+  display: block;
+  margin: 0;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  /* O fundo que aparece nas faixas da foto inteira: escuro, como o site. */
+  background: #0d1b2a;
+}
+
+/* O recorte, sempre preenchendo o quadrado pelo centro — as fotos chegam de
+   proporções variadas, e é isso que deixa a grade regular. */
+.foto__quadrada {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity .4s ease;
+}
+
+/* A foto inteira, por cima, invisível até o hover. `contain` mostra tudo,
+   centralizado, com o fundo escuro nas sobras. Sem src até o primeiro hover
+   (ver o script do componente). */
+.foto__inteira {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  opacity: 0;
+  transition: opacity .4s ease;
+  pointer-events: none;
+}
+
+/* Hover: o recorte some em fade e a inteira aparece em fade. Sair do mouse
+   faz o caminho inverso, com a mesma transição. */
+.foto:hover .foto__quadrada,
+.foto:focus-visible .foto__quadrada {
+  opacity: 0;
+}
+
+.foto:hover .foto__inteira,
+.foto:focus-visible .foto__inteira {
+  opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .fotos { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .fotos { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .foto:nth-child(n + 7) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foto__quadrada,
+  .foto__inteira { transition: none; }
 }

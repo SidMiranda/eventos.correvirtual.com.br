@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Photo;
 use App\Models\Sponsor;
 use App\Support\Arquivos;
 use App\Support\GaleriaDeRealizados;
@@ -42,7 +43,11 @@ class EventsController extends Controller
         // na view: trocar um deixou de exigir deploy.
         $patrocinadores = Sponsor::naVitrine($organizerId)->get();
 
-        return view('index', compact('proximosEventos', 'eventosRealizados', 'patrocinadores'));
+        // A galeria de fotos: 12 é o que a grade de 6×2 do desktop mostra; o
+        // celular esconde da 7ª em diante por CSS.
+        $fotos = Photo::naVitrine($organizerId)->limit(12)->get();
+
+        return view('index', compact('proximosEventos', 'eventosRealizados', 'patrocinadores', 'fotos'));
     }
 
     public function show($event_id)

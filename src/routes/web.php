@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\EventModalityController as AdminModalityController;
 use App\Http\Controllers\Admin\EventKitController as AdminKitController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Admin\PhotoController as AdminPhotoController;
 use App\Http\Controllers\Admin\SponsorController as AdminSponsorController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
 use App\Http\Controllers\Admin\CatalogoController as AdminCatalogoController;
@@ -166,5 +167,10 @@ Route::middleware(['auth', 'organizer.admin'])
         Route::resource('patrocinadores', AdminSponsorController::class)
             ->except(['show'])
             ->parameters(['patrocinadores' => 'id']);
+
+        // A galeria de fotos da home: do organizador, cadastro em lote.
+        Route::resource('fotos', AdminPhotoController::class)
+            ->except(['show'])
+            ->parameters(['fotos' => 'id']);
 
     });

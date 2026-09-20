@@ -95,6 +95,8 @@ Nenhuma tabela existente é alterada, exceto pela coluna nova em `subscriptions`
 
 **Sem `slug`**, diferente de `teams`: patrocinador não tem página nem endereço próprio neste sistema — seria coluna sem uso.
 
+**`photos`** (nova, 2026-09-20) — a galeria de fotos da home, também do **organizador**. Cadastro em lote, duas derivadas no bucket (`publico/organizadores/{id}/fotos/{id}.jpg`, o quadrado de 700×700, e `{id}-inteira.jpg`, a foto toda para o hover), sem coluna `has_image`: linha existe ⇒ imagem existe. Colunas `caption`, `link_url`, `position`, `active`. Ver `docs/specs/galeria-de-fotos.md`.
+
 **`subscriptions.team_id`** (nova coluna) — `foreignId` nullable, `nullOnDelete()`: apagar uma equipe não pode apagar inscrição de ninguém, só desvincula.
 
 ### "Aberta" e "fechada"
@@ -117,6 +119,7 @@ resource /admin/equipes               equipes
 resource /admin/patrocinadores        patrocinadores
 resource /admin/cupons                cupons (sem create/edit: o form e um modal)
 PATCH    /admin/cupons/{id}/status    liga/desliga o cupom
+resource /admin/fotos                 galeria de fotos da home (cadastro em lote)
 ```
 
 Modalidades e kits são aninhados em evento de propósito: eles não existem fora de um evento, e a rota aninhada torna impossível cadastrar um kit sem dizer de qual evento é.

@@ -15,6 +15,7 @@
 
             <nav class="cv-nav__links" id="cv-nav-links">
                 <a href="#eventos">Eventos</a>
+                <a href="#fotos">Fotos</a>
                 <a href="#sobre">Sobre</a>
                 <a href="#patrocinadores">Patrocinadores</a>
 

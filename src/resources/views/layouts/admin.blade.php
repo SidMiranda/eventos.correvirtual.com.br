@@ -129,7 +129,18 @@
             --icone-cupons:      #4338ca;  /* índigo: o que barateia o kit */
             --icone-equipes:     #be185d;  /* magenta: gente */
             --icone-patrocinadores: #0f766e;  /* teal: dinheiro que entra */
+            --icone-fotos:       #475569;  /* grafite: o único neutro, como uma foto */
         }
+
+        /* Miniatura da galeria no painel: sempre quadrada, como na home. */
+        .foto-painel {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            object-fit: cover;
+            background: var(--cv-blue-pale);
+        }
+        .foto-painel--grande { width: 148px; height: 148px; flex: 0 0 148px; border-radius: 6px; }
+        .foto-painel--inativa { opacity: .55; }
 
         /* Os seletores abaixo precisam ser tão específicos quanto os do template
            (`.sidenav .sidenav-menu .nav .nav-link .nav-link-icon .feather`),
@@ -156,6 +167,9 @@
 
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-patrocinadores .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-patrocinadores .nav-link-icon .feather { color: var(--icone-patrocinadores); }
+
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-fotos .nav-link-icon,
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-fotos .nav-link-icon .feather { color: var(--icone-fotos); }
 
         /* No item ativo o ícone não muda de cor — é a faixa clara atrás que
            marca onde você está, então a cor continua servindo de referência. */
@@ -285,6 +299,12 @@
                            href="{{ route('admin.patrocinadores.index') }}">
                             <div class="nav-link-icon"><i data-feather="award"></i></div>
                             Patrocinadores
+                        </a>
+
+                        <a class="nav-link nav-icone-fotos {{ request()->routeIs('admin.fotos.*') ? 'active' : '' }}"
+                           href="{{ route('admin.fotos.index') }}">
+                            <div class="nav-link-icon"><i data-feather="image"></i></div>
+                            Fotos
                         </a>
 
                     </div>
