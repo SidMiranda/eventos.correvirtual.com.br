@@ -27,8 +27,8 @@ depois — a faixa não sabe de onde a foto veio.
 - [x] Sem foto ativa, a seção não aparece.
 - [x] Foto de celular tirada em pé aparece em pé.
 - [x] As fotos chegam de tamanhos e proporções variadas: a grade mostra cada
-      uma preenchendo o quadrado, recortada pelo centro; no hover, a foto
-      inteira aparece em fade (e some em fade ao sair), centralizada.
+      uma preenchendo o quadrado, recortada pelo centro, sem vão entre elas;
+      no hover, a foto cresce um pouco dentro do quadrado.
 - [x] Nenhum organizador enxerga ou mexe na foto de outro.
 
 ## Fora de escopo
@@ -37,8 +37,10 @@ depois — a faixa não sabe de onde a foto veio.
   uma sincronização que grava nesta mesma tabela.
 - **Legenda visível na home.** A legenda existe (vira `alt` e `title`), mas a
   faixa mostra só a foto, como um feed.
-- **Lightbox / ampliar a foto no site.** O hover mostra a foto inteira dentro
-  do próprio quadrado; clique só vai ao link, se houver.
+- **Lightbox / ver a foto inteira no site.** Foi tentado como troca em fade no
+  hover e descartado pelo dono (2026-09-20): `contain` deixava a foto menor
+  que o recorte — parecia encolher. A derivada inteira continua sendo gravada
+  para um lightbox futuro; clique só vai ao link, se houver.
 - **Reordenar arrastando.** A ordem é um número, como no patrocinador.
 - **Guardar o original.** Só as duas derivadas ficam no bucket; se um dia for
   preciso outro corte, é subir de novo.
@@ -77,7 +79,7 @@ Duas derivadas por foto, JPEG qualidade 82:
 | Arquivo | O que é | Tamanho |
 |---|---|---|
 | `{id}.jpg` | o **quadrado** da grade: recorte central, preenchendo | 700×700 (~350 px na tela; o dobro no arquivo para não borrar em tela retina) |
-| `{id}-inteira.jpg` | a **foto inteira**, para o hover | cabe num quadro de 1000 px, sem ampliar |
+| `{id}-inteira.jpg` | a **foto inteira**, reservada para um "ver inteira" futuro (a faixa não a usa) | cabe num quadro de 1000 px, sem ampliar |
 
 O painel recebe foto de celular de 3–5 MB e 4000 px, e a home mostra 12 de uma
 vez — servir o original seria 40 MB numa página. As fotos chegam de proporções
@@ -117,13 +119,10 @@ largura. Título `GALERIA DE FOTOS` no mesmo estilo das outras seções, e a gra
 | 641–1024px | 3 | 12 (4 linhas) |
 | ≤ 640px | 2 | 6 (3 linhas; da 7ª em diante escondidas por CSS) |
 
-**Hover.** Cada quadrado tem as duas imagens: o recorte por cima e a inteira
-invisível. No hover, o recorte some em fade (0,4 s) e a inteira aparece em fade,
-`object-fit: contain`, centralizada sobre o fundo escuro; sair do mouse faz o
-caminho inverso. A inteira **só é baixada no primeiro hover** (fica em
-`data-src`; um script troca para `src` no `mouseenter`/toque/foco): 12 a mais
-na carga da página seria o dobro do peso à toa. Foto com `link_url` é
-`<a target="_blank" rel="noopener">`; sem link, é só `<figure>`. `Photo::naVitrine($organizerId)` filtra
+As fotos ficam **encostadas, sem vão** (`gap: 0`). **Hover:** a foto cresce
+1,05× dentro do próprio quadrado (0,4 s; o `overflow: hidden` esconde o que
+sobra) e volta ao sair. Foto com `link_url` é `<a target="_blank"
+rel="noopener">`; sem link, é só `<figure>`. `Photo::naVitrine($organizerId)` filtra
 ativas e ordena; a home pega 12. Sem foto, a seção não existe — mesma regra
 dos patrocinadores. O menu do site ganhou o link "Fotos".
 

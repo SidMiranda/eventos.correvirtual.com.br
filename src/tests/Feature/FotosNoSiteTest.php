@@ -52,8 +52,9 @@ class FotosNoSiteTest extends TestCase
             ->assertOk()
             ->assertSee('id="fotos"', false)
             ->assertSee("organizadores/{$this->organizador->id}/fotos/{$foto->id}.jpg", false)
-            // A inteira, do hover, vai em data-src: só desce no primeiro hover.
-            ->assertSee("data-src=\"" . \App\Support\Arquivos::fotoInteiraDaGaleria($foto) . "\"", false)
+            // A faixa mostra só o recorte; a inteira fica no bucket para um
+            // "ver inteira" futuro e não entra no HTML.
+            ->assertDontSee('-inteira.jpg', false)
             ->assertSee('alt="Largada da prova"', false);
     }
 
