@@ -120,6 +120,10 @@ resource /admin/patrocinadores        patrocinadores
 resource /admin/cupons                cupons (sem create/edit: o form e um modal)
 PATCH    /admin/cupons/{id}/status    liga/desliga o cupom
 resource /admin/fotos                 galeria de fotos da home (cadastro em lote)
+GET      /admin/inscricoes            lista de inscricoes, com filtros
+GET      /admin/inscricoes/pdf        relatorio do evento (abre em aba nova)
+GET      /admin/atletas               atletas que se inscreveram nos meus eventos
+GET      /admin/atletas/{id}          ficha do atleta (so consulta)
 ```
 
 Modalidades e kits são aninhados em evento de propósito: eles não existem fora de um evento, e a rota aninhada torna impossível cadastrar um kit sem dizer de qual evento é.

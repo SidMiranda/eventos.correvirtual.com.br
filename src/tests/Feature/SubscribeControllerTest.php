@@ -152,7 +152,12 @@ class SubscribeControllerTest extends TestCase
             'subscription_id' => $subscription->id,
         ]);
 
-        $this->assertDatabaseCount('subscriptions', 0);
+        // Desde 2026-09-21 cancelar MARCA a inscrição em vez de apagá-la: sem
+        // isso o organizador não tinha como saber que alguém desistiu. A linha
+        // é reaproveitada na reinscrição, porque a unique (event_id, user_id)
+        // não deixa criar uma segunda. Ver CancelarInscricaoTest.
+        $this->assertDatabaseCount('subscriptions', 1);
+        $this->assertSame('cancelled', $subscription->fresh()->status);
 
         $response = $this->actingAs($user)->post("/subscribe/event/{$event->id}", [
             'modality_id' => $modality->id,

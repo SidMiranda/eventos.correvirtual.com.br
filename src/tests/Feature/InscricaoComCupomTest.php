@@ -192,7 +192,9 @@ class InscricaoComCupomTest extends TestCase
             'subscription_id' => Subscription::firstOrFail()->id,
         ]);
 
-        $this->assertDatabaseCount('subscriptions', 0);
+        // Desde 2026-09-21 a inscrição cancelada FICA (marcada), em vez de ser
+        // apagada — o que importa aqui é que o uso do cupom não volta.
+        $this->assertSame(\App\Models\Subscription::CANCELADA, Subscription::firstOrFail()->status);
         $this->assertSame(1, $cupom->fresh()->used_quantity);
     }
 

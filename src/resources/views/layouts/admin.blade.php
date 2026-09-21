@@ -130,6 +130,8 @@
             --icone-equipes:     #be185d;  /* magenta: gente */
             --icone-patrocinadores: #0f766e;  /* teal: dinheiro que entra */
             --icone-fotos:       #475569;  /* grafite: o único neutro, como uma foto */
+            --icone-inscricoes:  #0369a1;  /* azul profundo: o movimento do evento */
+            --icone-atletas:     #9a3412;  /* terracota: gente que corre */
         }
 
         /* Miniatura da galeria no painel: sempre quadrada, como na home. */
@@ -170,6 +172,12 @@
 
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-fotos .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-fotos .nav-link-icon .feather { color: var(--icone-fotos); }
+
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-inscricoes .nav-link-icon,
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-inscricoes .nav-link-icon .feather { color: var(--icone-inscricoes); }
+
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-atletas .nav-link-icon,
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-atletas .nav-link-icon .feather { color: var(--icone-atletas); }
 
         /* No item ativo o ícone não muda de cor — é a faixa clara atrás que
            marca onde você está, então a cor continua servindo de referência. */
@@ -263,6 +271,18 @@
                            href="{{ route('admin.dashboard') }}">
                             <div class="nav-link-icon"><i data-feather="activity"></i></div>
                             Painel
+                        </a>
+
+                        <a class="nav-link nav-icone-inscricoes {{ request()->routeIs('admin.inscricoes.*') ? 'active' : '' }}"
+                           href="{{ route('admin.inscricoes.index') }}">
+                            <div class="nav-link-icon"><i data-feather="clipboard"></i></div>
+                            Inscrições
+                        </a>
+
+                        <a class="nav-link nav-icone-atletas {{ request()->routeIs('admin.atletas.*') ? 'active' : '' }}"
+                           href="{{ route('admin.atletas.index') }}">
+                            <div class="nav-link-icon"><i data-feather="user"></i></div>
+                            Atletas
                         </a>
 
                         <a class="nav-link nav-icone-eventos {{ request()->routeIs('admin.eventos.*') ? 'active' : '' }}"

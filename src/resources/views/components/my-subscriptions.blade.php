@@ -24,7 +24,7 @@
                 <span class="status-badge status-active">Inscrição Confirmada</span>
             @elseif($subscription->status === 'pending')
                 <span class="status-badge status-pending">Pagamento Pendente</span>
-            @elseif($subscription->status === 'canceled')
+            @elseif($subscription->status === 'cancelled')
                 <span class="status-badge status-canceled">Cancelada</span>
             @else
                 <span class="status-badge status-past">{{ ucfirst($subscription->status) }}</span>

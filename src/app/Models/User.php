@@ -39,6 +39,18 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * As inscrições do atleta — em qualquer evento, de qualquer organizador.
+     *
+     * Quem filtra por organizador é quem consulta (ver AthleteController): a
+     * conta é da plataforma, não de um organizador. `users.organizer_id` diz
+     * outra coisa — de qual organizador a pessoa é administradora.
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
     public function organizer()
     {
         return $this->belongsTo(Organizer::class);

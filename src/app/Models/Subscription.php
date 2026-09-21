@@ -21,10 +21,12 @@ class Subscription extends Model
         'bib_number',
         'status',
         'confirmed_at',
+        'cancelled_at',
     ];
 
     protected $casts = [
         'confirmed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
         'list_price' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'price' => 'decimal:2',
@@ -101,6 +103,55 @@ class Subscription extends Model
     | `discount_amount` a diferença. O retrato é gravado na criação e não muda
     | — é o que um relatório financeiro vai ler (docs/specs/cupons-de-desconto.md).
     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Situação
+    |--------------------------------------------------------------------------
+    | Os três estados vêm da coluna `status` (pending|paid|cancelled). Atenção
+    | à grafia: o enum do banco usa DOIS L (`cancelled`) e as views chegaram a
+    | comparar com um só — comparação que nunca batia, escondida pelo fato de
+    | que cancelar apagava a linha. Ver docs/specs/gestao-de-inscricoes.md.
+    */
+
+    public const PENDENTE = 'pending';
+    public const PAGA = 'paid';
+    public const CANCELADA = 'cancelled';
+
+    public function paga(): bool
+    {
+        return $this->status === self::PAGA;
+    }
+
+    public function pendente(): bool
+    {
+        return $this->status === self::PENDENTE;
+    }
+
+    public function cancelada(): bool
+    {
+        return $this->status === self::CANCELADA;
+    }
+
+    /** Rótulo curto para as telas, no molde de Event::situacao(). */
+    public function situacao(): string
+    {
+        return match ($this->status) {
+            self::PAGA => $this->gratuita() ? 'Confirmada (gratuita)' : 'Paga',
+            self::CANCELADA => 'Cancelada',
+            default => 'Aguardando pagamento',
+        };
+    }
+
+    /** Cor da etiqueta, seguindo as classes do template do painel. */
+    public function corDaSituacao(): string
+    {
+        return match ($this->status) {
+            self::PAGA => 'success',
+            self::CANCELADA => 'danger',
+            default => 'warning',
+        };
+    }
 
     /** Cupom zerou o valor: confirmada sem passar pelo Pix. */
     public function gratuita(): bool

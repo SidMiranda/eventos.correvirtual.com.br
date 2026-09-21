@@ -97,16 +97,18 @@ class SubscribeController extends Controller
         $kit = EventKit::findOrFail($kitInput);
 
         // Busca a inscrição existente para este usuário neste evento.
-        // Cancelar uma inscrição apaga a linha (ver cancel()), então uma inscrição
-        // encontrada aqui só pode estar pending ou paid — nunca cancelled.
+        //
+        // Inscrição ATIVA (pendente ou paga) barra aqui. Inscrição CANCELADA é
+        // reaproveitada logo abaixo: a unique (event_id, user_id) não deixa
+        // criar uma segunda linha para o mesmo par.
         //
         // Esta checagem vem ANTES de encostar no cupom: quem já está inscrito
         // não vai criar inscrição nenhuma, e não pode gastar um uso à toa.
-        $existingSubscription = Subscription::where('event_id', $event->id)
+        $inscricaoExistente = Subscription::where('event_id', $event->id)
             ->where('user_id', auth()->id())
             ->first();
 
-        if ($existingSubscription) {
+        if ($inscricaoExistente && ! $inscricaoExistente->cancelada()) {
             return redirect('/my-subscriptions')->with([
                 'modal_type'  => 'info',
                 'user_name'   => auth()->user()->name,
@@ -122,19 +124,34 @@ class SubscribeController extends Controller
             // inscrição falhar, o uso volta sozinho. O registrarUso() é um
             // UPDATE condicional — entre a prévia e o envio a última vaga pode
             // ter ido para outro atleta, e é aqui que isso aparece.
-            $subscription = DB::transaction(function () use ($event, $modalityInput, $kitInput, $cupom, $preco) {
+            $subscription = DB::transaction(function () use ($event, $modalityInput, $kitInput, $cupom, $preco, $inscricaoExistente) {
                 if ($cupom && ! $cupom->registrarUso()) {
                     throw new CupomRecusado("O cupom \"{$cupom->code}\" acabou de atingir o limite de usos.");
                 }
 
-                return Subscription::create([
-                    'event_id'    => $event->id,
-                    'user_id'     => auth()->id(),
+                $dados = [
                     'modality_id' => $modalityInput,
                     'kit_id'      => $kitInput,
-                    'status'      => 'pending',
+                    'status'      => Subscription::PENDENTE,
                     'bib_number'  => null,
-                ] + $preco->paraInscricao());
+                ] + $preco->paraInscricao();
+
+                // Inscreveu-se de novo depois de cancelar: a linha cancelada
+                // volta a valer, com os dados desta tentativa. O uso do cupom
+                // da tentativa anterior não volta (decisão de 2026-09-20), e
+                // esta tentativa consome um uso novo.
+                if ($inscricaoExistente) {
+                    $inscricaoExistente
+                        ->fill($dados + ['cancelled_at' => null, 'confirmed_at' => null])
+                        ->save();
+
+                    return $inscricaoExistente;
+                }
+
+                return Subscription::create($dados + [
+                    'event_id' => $event->id,
+                    'user_id'  => auth()->id(),
+                ]);
             });
         } catch (CupomRecusado $e) {
             return back()->withInput()->withErrors(['cupom' => $e->getMessage()]);
@@ -234,19 +251,22 @@ class SubscribeController extends Controller
         $eventTitle = $subscription->event->title ?? 'Evento';
 
         // Só permite o cancelamento se a inscrição ainda estiver pendente de pagamento
-        if ($subscription->status === 'pending') {
+        if ($subscription->pendente()) {
 
-            // Apaga possíveis registros de pagamento pendentes atrelados a esta inscrição para não gerar lixo na base
-            if (class_exists(\App\Models\Payment::class)) {
-                \App\Models\Payment::where('subscription_id', $subscription->id)->delete();
-            }
+            // A cobrança pendente é lixo: ninguém paga um Pix de inscrição
+            // cancelada, e deixá-la atrapalharia a conciliação.
+            \App\Models\Payment::where('subscription_id', $subscription->id)->delete();
 
-            // Apaga fisicamente o registro de inscrição.
+            // A inscrição FICA, marcada como cancelada. Até 2026-09-21 a linha
+            // era apagada, e o organizador não tinha como saber que alguém
+            // desistiu: a inscrição simplesmente sumia da base.
             //
             // O uso do cupom, se houve, NÃO volta para o contador — decisão do
             // dono (2026-09-20): uso consumido é uso gasto, mesmo sem pagamento.
             // Ver docs/specs/cupons-de-desconto.md.
-            $subscription->delete();
+            $subscription->status = Subscription::CANCELADA;
+            $subscription->cancelled_at = now();
+            $subscription->save();
 
             return redirect()->back()->with([
                 'modal_type'  => 'cancel',

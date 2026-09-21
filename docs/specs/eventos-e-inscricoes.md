@@ -11,7 +11,7 @@ Um atleta precisa conseguir ver os eventos de um organizador, escolher uma modal
 - `Event` (`organizer_id`, `title`, `slug`, `description`, `location`, `event_date`, `registration_deadline`, `banner_url`, `active`)
 - `EventModality` (`event_id`, `name`, `distance_km`, `max_participants`, `registered_count`, `active`)
 - `EventKit` (`event_id`, `name`, `description`, `price`, `stock`, `sold`, `active`)
-- `Subscription` (`event_id`, `user_id`, `modality_id`, `kit_id`, `price`, `bib_number`, `status`, `confirmed_at`) — único por `(event_id, user_id)` no banco
+- `Subscription` (`event_id`, `user_id`, `modality_id`, `kit_id`, `list_price`, `discount_amount`, `coupon_id`, `price`, `bib_number`, `status`, `confirmed_at`, `cancelled_at`) — único por `(event_id, user_id)` no banco
 
 ## Fluxos atuais
 
@@ -30,7 +30,7 @@ Um atleta precisa conseguir ver os eventos de um organizador, escolher uma modal
 Comportamento atual:
 1. Busca o evento por ID (mesmo problema de escopo do item anterior — **BUG-005**, ainda aberto) e recusa se não estiver com inscrições abertas.
 2. Valida que `modality_id` e `kit_id` vieram no request **e** que existem em `event_modalities`/`event_kits` pertencendo a este `event_id` (`Rule::exists(...)->where('event_id', ...)`) — corrigido em 2026-07-30 (BUG-002). As colunas `subscriptions.modality_id`/`kit_id` agora são `foreignId` de verdade, com `restrictOnDelete()` (não dá pra apagar um kit/modalidade que já tem inscrição). O campo `cupom` é opcional.
-3. Se já existe uma `Subscription` do usuário pra esse evento (só pode estar `pending` ou `paid` — ver "Cancelar inscrição" abaixo, cancelar apaga a linha) → redireciona pra "minhas inscrições" avisando que já está inscrito. Isso vem antes do cupom, para não gastar uso à toa.
+3. Se já existe uma `Subscription` **ativa** (`pending` ou `paid`) do usuário pra esse evento → redireciona pra "minhas inscrições" avisando que já está inscrito. Isso vem antes do cupom, para não gastar uso à toa. Se a existente estiver **cancelada**, ela é reaproveitada no passo 5 (ver "Cancelar inscrição" abaixo).
 4. Se veio cupom, `App\Services\CupomNoCheckout::localizar()` acha e valida o código **pelo evento**; recusa vira erro no campo `cupom`. `App\Services\PrecoDaInscricao` faz a conta em centavos (2026-09-20, ver `docs/specs/cupons-de-desconto.md`).
 5. Numa transação: consome o uso do cupom (`Coupon::registrarUso()`, `UPDATE` condicional) e cria a `Subscription` com `status = pending`, `list_price` (preço do kit), `discount_amount`, `price` (o cobrado) e `coupon_id`. BUG-001 (preço fixo) foi corrigido em 2026-08-02 — `price` é o preço do kit, menos o desconto.
 6. Valor zero (cupom de 100%) → confirma na hora por `ConfirmacaoDeInscricao` (`paid`, `confirmed_at`, e-mail) e não gera Pix. Senão, redireciona pra "minhas inscrições", onde o atleta vê o valor (e o desconto) antes de pagar.
@@ -43,7 +43,7 @@ Não há verificação de `registration_deadline` nem de `max_participants` da m
 `GET /my-subscriptions` (autenticado) → `SubscribeController::mySubscriptions`. Lista inscrições do usuário logado, filtradas pelas que pertencem a eventos do organizador do domínio atual (`whereHas('event', ...)`) — este endpoint escopa por tenant corretamente.
 
 ### Cancelar inscrição
-`POST /subscription/cancel` (autenticado) → `SubscribeController::cancel`. Só permite cancelar se `status === 'pending'`. Ao cancelar, **deleta a linha** (não muda pra `status = cancelled`) e apaga `Payment`s pendentes associados. O uso do cupom, se houve, **não volta** para o contador (decisão do dono, 2026-09-20).
+`POST /subscription/cancel` (autenticado) → `SubscribeController::cancel`. Só permite cancelar se a inscrição estiver pendente. **Desde 2026-09-21 a linha FICA**, marcada com `status = 'cancelled'` e `cancelled_at` — antes ela era apagada, e o organizador não tinha como saber que alguém desistiu (ver `docs/specs/gestao-de-inscricoes.md`). Os `Payment` pendentes continuam sendo apagados. O uso do cupom, se houve, **não volta** para o contador (decisão do dono, 2026-09-20). Quem cancela e se inscreve de novo **reaproveita a mesma linha**, porque a unique `(event_id, user_id)` não deixa criar uma segunda.
 
 ## Bugs conhecidos nesta área
 
@@ -61,7 +61,7 @@ Cobertos em `tests/Feature/SubscribeControllerTest.php`:
 - `SubscribeController@subscribe` rejeita `modality_id`/`kit_id` que não pertencem ao `event_id`.
 - `SubscribeController@subscribe` cria a inscrição com `modality_id`/`kit_id` válidos.
 - `SubscribeController@subscribe` rejeita segunda inscrição ativa pro mesmo evento.
-- Depois de cancelar (linha apagada), o usuário consegue se inscrever de novo sem erro de unique constraint.
+- Depois de cancelar, o usuário consegue se inscrever de novo: a linha cancelada é reaproveitada, sem erro de unique constraint (`tests/Feature/CancelarInscricaoTest.php` cobre o cancelamento em detalhe).
 
 Ainda por escrever (dependem de BUG-001/BUG-005 corrigidos):
 - `EventsController@index` só retorna eventos do organizador do domínio atual.

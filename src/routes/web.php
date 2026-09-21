@@ -12,7 +12,9 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\EventModalityController as AdminModalityController;
 use App\Http\Controllers\Admin\EventKitController as AdminKitController;
+use App\Http\Controllers\Admin\AthleteController as AdminAthleteController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Admin\PhotoController as AdminPhotoController;
 use App\Http\Controllers\Admin\SponsorController as AdminSponsorController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
@@ -161,6 +163,16 @@ Route::middleware(['auth', 'organizer.admin'])
         Route::get('catalogo/{tipo}/novo', [AdminCatalogoController::class, 'novo'])
             ->whereIn('tipo', ['modalidades', 'kits'])
             ->name('catalogo.novo');
+
+        // Inscrições: a lista com filtros e o relatório em PDF. O PDF vem
+        // ANTES do resource para /inscricoes/pdf não ser lido como um id.
+        Route::get('inscricoes/pdf', [AdminSubscriptionController::class, 'pdf'])->name('inscricoes.pdf');
+        Route::get('inscricoes', [AdminSubscriptionController::class, 'index'])->name('inscricoes.index');
+
+        // Atletas: só consulta. "Atleta do organizador" é quem tem ao menos
+        // uma inscrição num evento dele — a conta em si é da plataforma.
+        Route::get('atletas', [AdminAthleteController::class, 'index'])->name('atletas.index');
+        Route::get('atletas/{id}', [AdminAthleteController::class, 'show'])->name('atletas.show');
 
         // Cupons: uma tela só, com o formulário num modal da própria listagem —
         // por isso sem `create` e sem `edit`. O cupom pertence a um evento, mas
