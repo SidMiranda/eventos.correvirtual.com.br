@@ -8,25 +8,51 @@
 @endpush
 
 @section('content')
-    {{-- O topo é o mesmo para todo evento: degradê no azul do tema com o nome
-         em texto grande. Antes ele tentava encaixar a arte da prova aqui, e a
-         arte é retrato (576x1024) num espaço largo — recortada ficava sem o
-         nome e a data, inteira ficava minúscula entre duas faixas de fundo.
+    {{-- O topo mostra o banner enviado QUANDO ele é horizontal; caso contrário,
+         o degradê no azul do tema.
 
-         A arte não se perde: ela é o cartaz da home e é o que viaja no cartão
-         de pré-visualização quando alguém compartilha o link (ver o $og no
+         A distinção existe porque o campo de banner do painel recebeu, na
+         prática, duas coisas diferentes: um banner de verdade (1600x320) e o
+         cartaz da prova (1080x1920). Cartaz retrato num quadro largo fica
+         recortado justo no nome e na data — foi por isso que em 2026-08-30 o
+         topo virou degradê fixo e a imagem parou de ser usada. Agora quem
+         mandou banner largo vê o banner (ver Event::temBannerParaOTopo()).
+
+         A arte não se perde nos dois casos: ela é o cartaz da home e é o que
+         viaja no cartão de pré-visualização do link (ver o $og no
          EventsController). --}}
     <div class="banner-wrap">
         <a class="back-button" href="{{ url('/') }}">← Voltar</a>
 
-        <section class="event-banner">
-            <h1 class="event-banner__nome">{{ $event->title }}</h1>
-            <p class="event-banner__linha">
-                {{ \Carbon\Carbon::parse($event->event_date)->format('d/m/Y') }}
-                <span aria-hidden="true">·</span>
-                {{ $event->location }}
-            </p>
-        </section>
+        @if ($event->temBannerParaOTopo())
+            {{-- Com banner horizontal, a arte fala sozinha: ela já traz nome,
+                 distâncias, data e patrocinadores. Escrever o nome por cima
+                 duplicaria o que está desenhado ali e sujaria a imagem — e
+                 data e local aparecem logo abaixo, nos blocos de informação.
+
+                 O <h1> continua no HTML, só que invisível: é ele que o
+                 buscador e o leitor de tela leem. O quadro usa a proporção
+                 medida no upload, então a arte aparece inteira, sem cortar as
+                 pontas (é onde ficam as logos de quem patrocina). --}}
+            <section class="event-banner event-banner--imagem"
+                     style="aspect-ratio: {{ $event->proporcaoDoBanner() }};
+                            background-image: url('{{ \App\Support\Arquivos::bannerDoEvento($event) }}');">
+                <h1 class="event-banner__nome-oculto">{{ $event->title }}</h1>
+            </section>
+        @else
+            {{-- Sem banner horizontal, o degradê no azul do tema com o nome em
+                 texto grande. É também o que vê quem enviou o cartaz da prova
+                 (retrato) no campo de banner: cartaz num quadro largo fica
+                 recortado justo no nome e na data. --}}
+            <section class="event-banner">
+                <h1 class="event-banner__nome">{{ $event->title }}</h1>
+                <p class="event-banner__linha">
+                    {{ \Carbon\Carbon::parse($event->event_date)->format('d/m/Y') }}
+                    <span aria-hidden="true">·</span>
+                    {{ $event->location }}
+                </p>
+            </section>
+        @endif
     </div>
 
   @error('inscricao')

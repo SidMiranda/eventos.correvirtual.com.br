@@ -149,8 +149,13 @@ html {
   font-size: 14px;
 }
 
+/* O "Sair" é um <button> dentro de um <form>; os outros itens do menu são
+   links. `display: flex` tira o form do fluxo de texto — como bloco, ele criava
+   uma caixa de linha cujo "strut" usa a fonte herdada do body (16px/24px),
+   maior que a dos links. */
 .cv-nav__logout-form {
-  display: inline;
+  display: flex;
+  align-items: center;
 }
 
 .cv-nav__logout-form button {
@@ -163,6 +168,12 @@ html {
   font-weight: 600;
   padding: 0;
   font-family: inherit;
+  /* `forms.css` estiliza TODO `button[type="submit"]` da página — é o botão
+     verde dos formulários de login e inscrição — e de lá vinham `width: 100%`
+     e `margin-top: 10px`. A margem empurrava o "Sair" 10px para baixo dentro
+     do form, deixando-o visivelmente desalinhado dos links ao lado. */
+  margin: 0;
+  width: auto;
 }
 
 .cv-nav__logout-form button:hover {

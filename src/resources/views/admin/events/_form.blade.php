@@ -88,7 +88,11 @@
             @error('banner')
                 <div class="invalid-feedback d-block">{{ $message }}</div>
             @else
-                <small class="form-text text-muted">Imagem larga. JPG, PNG ou WEBP, até 5 MB.</small>
+                <small class="form-text text-muted">
+                    <strong>Imagem horizontal</strong> — algo como 1600x320. Ela vira o topo da página do evento.
+                    Se você enviar o cartaz em pé aqui, o topo continua no degradê azul (cartaz retrato fica
+                    recortado no nome e na data); o cartaz é o campo ao lado. JPG, PNG ou WEBP, até 5 MB.
+                </small>
             @enderror
         </div>
     </div>

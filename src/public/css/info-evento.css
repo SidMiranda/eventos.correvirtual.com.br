@@ -49,6 +49,37 @@
   border-radius: 10px;
 }
 
+/* Com banner horizontal enviado, a imagem entra no lugar do degradê.
+
+   A altura vem da proporção da própria imagem (aspect-ratio no style, medido
+   no upload), não dos 320px fixos: com altura fixa, um banner 5:1 era cortado
+   nas laterais — justo onde ficam as logos de quem patrocina. O teto de 420px
+   evita que um banner pouco largo empurre o evento para fora da primeira tela.
+
+   Sem véu escuro e sem texto por cima: a arte já traz o nome. */
+.event-banner--imagem {
+  height: auto;
+  max-height: 420px;
+  padding: 0;
+  background-image: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* O nome continua no HTML para buscador e leitor de tela, fora da vista. */
+.event-banner__nome-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .event-banner__nome {
   margin: 0;
   color: #fff;

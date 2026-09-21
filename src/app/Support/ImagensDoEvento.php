@@ -21,11 +21,52 @@ use Illuminate\Support\Facades\Log;
 class ImagensDoEvento
 {
     /**
-     * Salva o banner (imagem larga do topo da página do evento).
+     * A partir de que proporção a imagem serve como banner do topo.
+     *
+     * 2:1 é folgado de propósito: um banner de verdade costuma ser bem mais
+     * largo (o primeiro recebido tem 5:1), e o cartaz da prova é retrato
+     * (0,56:1). Qualquer corte entre os dois separa os casos com sobra.
+     */
+    public const PROPORCAO_DE_BANNER = 2.0;
+
+    /**
+     * Salva o banner e anota se ele serve para o topo da página.
+     *
+     * O campo sempre recebeu duas coisas diferentes: o cartaz da prova
+     * (retrato) e um banner horizontal. O topo só usa a imagem quando ela é
+     * larga — ver a migration `add_banner_wide_to_events_table`.
      */
     public static function salvarBanner(Event $event, UploadedFile $arquivo): void
     {
         self::salvar($event, $arquivo, 'banner');
+
+        $event->banner_ratio = self::proporcao(file_get_contents($arquivo->getRealPath()));
+        $event->save();
+    }
+
+    /**
+     * A proporção da imagem (largura ÷ altura), ou null se não for legível.
+     *
+     * É o número que a página usa para desenhar o quadro do topo na medida
+     * exata do banner, sem cortar as pontas.
+     */
+    public static function proporcao(string $bytes): ?float
+    {
+        $medidas = @getimagesizefromstring($bytes);
+
+        if (! $medidas || $medidas[1] <= 0) {
+            return null;
+        }
+
+        return round($medidas[0] / $medidas[1], 3);
+    }
+
+    /** A imagem é larga o bastante para virar banner do topo? */
+    public static function ehLarga(string $bytes): bool
+    {
+        $proporcao = self::proporcao($bytes);
+
+        return $proporcao !== null && $proporcao >= self::PROPORCAO_DE_BANNER;
     }
 
     /**

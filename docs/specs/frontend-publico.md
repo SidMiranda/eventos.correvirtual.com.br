@@ -136,6 +136,8 @@ O card (`components/app/arte-realizada.blade.php`) é um `<figure>` com uma `<im
 
 Degradê fixo no azul do tema (`#05080d → #0d1b2a → #1a71b2`), 320px no desktop e 200px no celular, com o nome do evento em texto grande e uma linha com data e local. Texto de verdade, desenhado pelo navegador: nunca corta, nunca desfoca, e não custa uma requisição.
 
+**Revisto em 2026-09-21:** o degradê deixou de ser o único caminho. Quando o evento tem um **banner horizontal** enviado (proporção ≥ 2:1, medida no upload e guardada em `events.banner_ratio`), é ele que ocupa o topo — no quadro desenhado com a proporção da própria imagem, para não cortar as pontas, com teto de 420px. Nesse caso o nome sai da vista (a arte já o traz, e data e local aparecem logo abaixo) mas continua no HTML para buscador e leitor de tela. Quem enviou o **cartaz da prova** (retrato) no campo de banner continua no degradê — era o caso que motivou a mudança de 2026-08-30 e segue valendo.
+
 O `accent_color` de cada evento continua existindo e continua mandando no card de evento **sem** arte, na home e em "minhas inscrições". O que ele não faz mais é mandar no topo da página, que agora é igual para todos.
 
 O `<h2>` que repetia o nome logo abaixo do topo saiu — com o nome grande no degradê, era a mesma frase duas vezes seguidas.

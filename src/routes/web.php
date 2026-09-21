@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Subscriptions\SubscribeController;
@@ -42,6 +43,20 @@ Route::post('/login', [LoginController::class, 'login']);
 
 Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
+
+/*
+|--------------------------------------------------------------------------
+| Senha
+|--------------------------------------------------------------------------
+| Troca de senha de quem já está logado. O item "Alterar senha" do menu
+| apontava para `#!` desde sempre — não existia tela. Recuperação por e-mail
+| ("esqueci minha senha") continua não existindo; ver docs/backlog.md.
+*/
+
+Route::middleware('auth')->group(function () {
+    Route::get('/alterar-senha', [PasswordController::class, 'edit'])->name('senha.editar');
+    Route::put('/alterar-senha', [PasswordController::class, 'update'])->name('senha.atualizar');
+});
 
 Route::get('/logout', [LoginController::class, 'logout']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

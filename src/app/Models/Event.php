@@ -18,6 +18,7 @@ class Event extends Model
         'event_date',
         'registration_deadline',
         'banner_url',
+        'banner_ratio',
         'accent_color',
         'active',
     ];
@@ -27,6 +28,7 @@ class Event extends Model
         return [
             'event_date' => 'datetime',
             'registration_deadline' => 'datetime',
+            'banner_ratio' => 'float',
         ];
     }
 
@@ -54,6 +56,32 @@ class Event extends Model
 
     /** Azul escuro do tema do site, usado quando o evento não define cor. */
     public const COR_PADRAO = '#0d1b2a';
+
+    /**
+     * O topo da página deve mostrar o banner enviado?
+     *
+     * Só quando existe imagem E ela é larga: cartaz retrato num quadro de
+     * 320px de altura fica recortado no nome e na data — foi o que motivou o
+     * degradê fixo em 2026-08-30. Ver docs/specs/frontend-publico.md.
+     */
+    public function temBannerParaOTopo(): bool
+    {
+        return (bool) $this->banner_url
+            && $this->banner_ratio !== null
+            && $this->banner_ratio >= \App\Support\ImagensDoEvento::PROPORCAO_DE_BANNER;
+    }
+
+    /**
+     * A proporção para o quadro do topo, limitada.
+     *
+     * O teto existe porque um banner de 2:1 numa tela de 1400px daria 700px de
+     * altura — o evento inteiro empurrado para fora da primeira tela. Acima do
+     * teto o quadro para de crescer e a imagem preenche cortando de leve.
+     */
+    public function proporcaoDoBanner(): float
+    {
+        return max(3.4, (float) $this->banner_ratio);
+    }
 
     public function corDeDestaque(): string
     {
