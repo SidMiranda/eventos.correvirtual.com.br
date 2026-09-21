@@ -46,7 +46,6 @@
   padding: 28px 32px;
   box-sizing: border-box;
   overflow: hidden;
-  border-radius: 10px;
 }
 
 /* Com banner horizontal enviado, a imagem entra no lugar do degradê.
@@ -211,6 +210,16 @@
     height: 200px;
     padding: 20px 18px;
     gap: 10px;
+  }
+
+  /* O banner com imagem não entra na altura fixa acima: ele desenha o quadro
+     na proporção da própria arte (aspect-ratio no style). Com 200px fixos e
+     `cover`, a imagem era cortada nas laterais na tela do celular — que é
+     onde a maioria abre a página. Sem teto aqui, pelo mesmo motivo: numa
+     tela estreita, 5:1 dá uma faixa baixa, nunca uma parede. */
+  .event-banner--imagem {
+    height: auto;
+    max-height: none;
   }
 
   .banner-overlay h1 {

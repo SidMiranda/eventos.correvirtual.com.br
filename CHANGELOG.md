@@ -6,6 +6,11 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Banner do evento: sem canto arredondado e sem corte no celular (2026-09-21)
+- **Tirado o `border-radius`** do topo da página do evento. O banner encosta nas bordas, e canto redondo ali deixava um respiro esquisito contra o fundo. Vale para os dois casos — com banner e com o degradê.
+- **No celular o banner era cortado.** A regra `@media (max-width: 768px)` fixava `height: 200px` para o topo, o que vencia o `height: auto` do banner com imagem: com `cover`, a arte perdia as laterais — justo onde ficam as logos de quem realiza e patrocina. Agora o banner com imagem mantém a proporção da própria arte também no celular (num 5:1 a 375px de largura, o quadro fica com 75px de altura e mostra tudo).
+- Sem teto de altura no celular, pelo mesmo motivo: numa tela estreita, uma arte alongada vira uma faixa baixa, nunca uma parede.
+
 ### Gestão de inscrições: tela, filtros, relatório em PDF e ficha do atleta (2026-09-21)
 - **Tela de inscrições** em `/admin/inscricoes`: o organizador finalmente vê quem se inscreveu. Filtros por evento, por situação (pagas, aguardando, canceladas), "só com desconto" e busca por nome, e-mail ou CPF — todos combináveis e preservados na paginação. O CPF é comparado só pelos dígitos: no banco está sem pontuação e a pessoa digita com.
 - **Totais que acompanham o filtro**: inscrições, pagas, aguardando, canceladas, arrecadado e descontos concedidos. O que se lê no topo é sempre o que está na tabela abaixo. Arrecadado e descontos contam só as **pagas** — inscrição pendente ainda não é dinheiro — e saem de `subscriptions` (`price`, `discount_amount`), sem reconstruir nada a partir do kit ou do cupom.
