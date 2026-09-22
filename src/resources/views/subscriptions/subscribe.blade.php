@@ -70,11 +70,11 @@
 
                 <div class="cupom-linha">
                     <input type="text" name="cupom" id="campoCupom" maxlength="20"
-                           placeholder="Cupom de desconto (opcional)" autocomplete="off" spellcheck="false"
+                           placeholder="Tem um CUPOM?" autocomplete="off" spellcheck="false"
                            value="{{ old('cupom') }}">
                     <button type="button" id="aplicarCupom">Aplicar</button>
                 </div>
-                <p class="cupom-dica">Tem um cupom? Escolha o kit, digite o código e aplique para ver o valor com desconto.</p>
+                <p class="cupom-dica">Escolha o kit, digite o código e aplique para ver o valor com desconto.</p>
 
                 {{-- A prévia é conveniência: o servidor confere tudo de novo no envio. --}}
                 <div class="previa-cupom" id="previaCupom" hidden></div>

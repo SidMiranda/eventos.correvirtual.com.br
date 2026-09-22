@@ -6,6 +6,9 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Placeholder do cupom na inscrição (2026-09-22)
+- O campo de cupom agora diz só **"Tem um CUPOM?"** no lugar de "Cupom de desconto (opcional)". A dica logo abaixo começava com a mesma pergunta e passou a ir direto ao ponto ("Escolha o kit, digite o código e aplique…"), para o campo e a linha de baixo não repetirem a mesma frase.
+
 ### CPF de verdade, e CPF do responsável para menor de idade (2026-09-22)
 - **O CPF não era conferido.** A regra do cadastro era `size:11` e nada mais: **`11111111111` entrava**. Agora passa pelos dígitos verificadores (`App\Rules\Cpf`, a conta oficial da Receita), que também recusa número repetido. O CPF identifica o atleta na largada e no comprovante de pagamento — número inventado só aparece como problema no dia da prova, quando não dá mais para corrigir. **Isto vale para o CPF de todo mundo, não só o do responsável.**
 - **Campo "CPF do responsável"**, que aparece quando a data de nascimento informada é de menos de 18 anos. Obrigatório, com a mesma conta de dígitos, e **não pode ser o CPF do próprio atleta**. Menor de idade não responde por si num contrato, e a inscrição é um: tem pagamento, termo e risco físico.
