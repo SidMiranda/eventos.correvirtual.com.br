@@ -41,6 +41,16 @@ class RegisterController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'cpf' => 'required|string|size:11|unique:users',
             'password' => 'required|string|min:6', // No futuro colocar regras mais fortes
+            // A cidade é opcional (decisão do dono em 2026-09-22: campo
+            // obrigatório novo no meio do funil custa inscrição). Mas quem
+            // digitou alguma coisa e NÃO escolheu da lista não passa: sem o
+            // `required_with`, o texto digitado se perderia em silêncio e a
+            // pessoa acharia que tinha informado a cidade.
+            'cidade' => 'nullable|string|max:120',
+            'city_id' => 'nullable|required_with:cidade|integer|exists:cities,id',
+        ], [
+            'city_id.required_with' => 'Escolha a cidade na lista que aparece enquanto você digita.',
+            'city_id.exists' => 'Escolha a cidade na lista que aparece enquanto você digita.',
         ]);
 
         // 2. Criação do usuário no banco
@@ -48,6 +58,7 @@ class RegisterController extends Controller
             'name' => $request->name,
             'birth_date' => $request->birth_date,
             'sex' => $request->sex,
+            'city_id' => $request->city_id ?: null,
             'phone' => $request->phone,
             'email' => $request->email,
             'cpf' => $request->cpf,

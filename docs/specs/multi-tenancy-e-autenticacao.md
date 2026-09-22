@@ -52,3 +52,33 @@ Ver `docs/backlog.md`: BUG-006 (`organizer_id` não preenchido no cadastro), BUG
 - Cadastro seta `organizer_id` igual ao organizador do domínio atual (depende de BUG-006 corrigido e da decisão de produto sobre conta única vs. por tenant).
 - Login/registro/verificação respeitam rate limit após N tentativas (depende de BUG-007 corrigido).
 - CPF e e-mail duplicados são rejeitados no cadastro.
+
+---
+
+## Cidade do atleta (2026-09-22)
+
+`users.city_id` aponta para `cities`, a tabela dos **5.571 municípios do
+IBGE** — código oficial, nome e UF. É tabela de referência: não pertence a
+organizador nenhum e é a mesma para todos os sites da plataforma.
+
+**Por que não texto livre.** "Mogi Guaçu", "mogi guacu" e "MOGI GUAÇÚ" são a
+mesma cidade e contariam como três na hora de saber de onde vem o pessoal da
+prova. Com o código do IBGE, o dado também serve de ponte para federação e
+cronometragem.
+
+**A busca** (`GET /cidades?q=`, pública, `throttle:60,1`) começa com 3 letras
+e usa `cities.name_normalized` — o nome sem acento e em minúsculas, porque
+ninguém digita "São Paulo" com til no celular. Quem começa pelo termo vem
+primeiro; devolve no máximo 20.
+
+**A lista mora no nosso banco**, carregada de `database/data/municipios-ibge.json`
+por `php artisan cidades:importar --force`, que roda no deploy. Consultar a API
+do IBGE a cada tecla colocaria a inscrição de alguém na dependência de um
+serviço de fora responder a tempo. O import é upsert pelo código do IBGE:
+repetir não duplica nem desfaz vínculo de ninguém.
+
+**O campo é opcional** no cadastro (decisão do dono, 2026-09-22), mas quem
+digita e não escolhe da lista não passa (`required_with`) — senão o texto
+sumiria em silêncio. Quem se cadastrou antes continua sem cidade: não existe
+tela de editar perfil (ver `docs/backlog.md`).
+

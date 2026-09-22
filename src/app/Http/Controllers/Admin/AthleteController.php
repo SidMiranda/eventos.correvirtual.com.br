@@ -35,6 +35,7 @@ class AthleteController extends AdminController
                         ->when($digitos !== '', fn ($c) => $c->orWhere('cpf', 'like', "%{$digitos}%"));
                 });
             })
+            ->with('city')
             ->withCount(['subscriptions as inscricoes_count' => fn ($q) => $this->apenasNosMeusEventos($q)])
             ->withMax(['subscriptions as ultima_inscricao' => fn ($q) => $this->apenasNosMeusEventos($q)], 'created_at')
             ->orderBy('name')
@@ -46,7 +47,7 @@ class AthleteController extends AdminController
 
     public function show(int $id)
     {
-        $atleta = $this->osQueSeInscreveram()->where('users.id', $id)->firstOrFail();
+        $atleta = $this->osQueSeInscreveram()->with('city')->where('users.id', $id)->firstOrFail();
 
         // As inscrições dele NOS MEUS eventos. As de outro organizador não
         // aparecem: não são da minha conta, no sentido literal.

@@ -19,6 +19,7 @@ class User extends Authenticatable
         'phone',
         'birth_date',
         'sex',
+        'city_id',
         'email_verification_code',
         'organizer_id',
         'role',
@@ -54,6 +55,17 @@ class User extends Authenticatable
     public function organizer()
     {
         return $this->belongsTo(Organizer::class);
+    }
+
+    /**
+     * A cidade do atleta, da lista do IBGE.
+     *
+     * Nula em quem se cadastrou antes de 2026-09-22 — e continua nula, porque
+     * não existe tela de editar perfil (ver docs/backlog.md).
+     */
+    public function city()
+    {
+        return $this->belongsTo(City::class);
     }
 
     public function isOrganizerAdmin(): bool

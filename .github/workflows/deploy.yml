@@ -72,6 +72,14 @@ jobs:
             docker exec corre_app composer install --no-interaction --optimize-autoloader
 
             docker exec corre_app php artisan migrate --force
+
+            # Os municipios do IBGE, que alimentam o campo "Cidade" do
+            # cadastro. E um upsert pelo codigo do IBGE: rodar em todo deploy
+            # nao duplica nada, nao perde o vinculo de ninguem e leva segundos.
+            # Fica aqui e nao numa migration de proposito -- na migration,
+            # cada classe de teste pagaria 5.571 insercoes.
+            docker exec corre_app php artisan cidades:importar --force
+
             docker exec corre_app php artisan optimize
 
             echo "✅ Deploy finalizado com sucesso!"

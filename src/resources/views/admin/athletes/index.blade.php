@@ -67,6 +67,9 @@
                                         @if ($atleta->phone)
                                             <div class="small text-muted">{{ $atleta->phone }}</div>
                                         @endif
+                                        @if ($atleta->city)
+                                            <div class="small text-muted">{{ $atleta->city->nomeCompleto() }}</div>
+                                        @endif
                                     </td>
                                     <td class="text-center">{{ $atleta->inscricoes_count }}</td>
                                     <td class="small text-muted">

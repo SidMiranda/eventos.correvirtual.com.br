@@ -156,6 +156,11 @@
                                     <td>
                                         <div>{{ $inscricao->modality->name ?? '—' }}</div>
                                         <div class="small text-muted">{{ $inscricao->kit->name ?? '—' }}</div>
+                                        {{-- A equipe entra aqui e não numa coluna nova: a tabela já
+                                             tem seis e nem toda inscrição tem equipe. --}}
+                                        @if ($inscricao->team_name)
+                                            <div class="small"><i data-feather="users" style="width:12px;height:12px;"></i> {{ $inscricao->team_name }}</div>
+                                        @endif
                                     </td>
                                     <td class="text-right">
                                         <div class="font-weight-500">R$ {{ number_format($inscricao->price, 2, ',', '.') }}</div>

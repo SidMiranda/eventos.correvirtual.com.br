@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Subscriptions\SubscribeController;
 use App\Http\Controllers\Events\EventsController;
@@ -46,6 +47,13 @@ Route::post('/login', [LoginController::class, 'login']);
 
 Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
+
+// A busca do campo "Cidade" do cadastro. Pública porque o cadastro é de quem
+// ainda não tem conta; o throttle existe para ninguém usar isto como serviço
+// de consulta às nossas custas.
+Route::get('/cidades', [CityController::class, 'buscar'])
+    ->middleware('throttle:60,1')
+    ->name('cidades.buscar');
 
 /*
 |--------------------------------------------------------------------------

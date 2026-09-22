@@ -11,7 +11,7 @@ Um atleta precisa conseguir ver os eventos de um organizador, escolher uma modal
 - `Event` (`organizer_id`, `title`, `slug`, `description`, `schedule`, `registration_info`, `location`, `event_date`, `registration_deadline`, `banner_url`, `banner_ratio`, `accent_color`, `active`)
 - `EventModality` (`event_id`, `name`, `distance_km`, `max_participants`, `registered_count`, `active`)
 - `EventKit` (`event_id`, `name`, `description`, `price`, `stock`, `sold`, `active`)
-- `Subscription` (`event_id`, `user_id`, `modality_id`, `kit_id`, `list_price`, `discount_amount`, `coupon_id`, `price`, `bib_number`, `status`, `confirmed_at`, `cancelled_at`) — único por `(event_id, user_id)` no banco
+- `Subscription` (`event_id`, `user_id`, `modality_id`, `kit_id`, `team_name`, `list_price`, `discount_amount`, `coupon_id`, `price`, `bib_number`, `status`, `confirmed_at`, `cancelled_at`) — único por `(event_id, user_id)` no banco
 
 ## Fluxos atuais
 
@@ -40,6 +40,13 @@ Comportamento atual:
 4. Se veio cupom, `App\Services\CupomNoCheckout::localizar()` acha e valida o código **pelo evento**; recusa vira erro no campo `cupom`. `App\Services\PrecoDaInscricao` faz a conta em centavos (2026-09-20, ver `docs/specs/cupons-de-desconto.md`).
 5. Numa transação: consome o uso do cupom (`Coupon::registrarUso()`, `UPDATE` condicional) e cria a `Subscription` com `status = pending`, `list_price` (preço do kit), `discount_amount`, `price` (o cobrado) e `coupon_id`. BUG-001 (preço fixo) foi corrigido em 2026-08-02 — `price` é o preço do kit, menos o desconto.
 6. Valor zero (cupom de 100%) → confirma na hora por `ConfirmacaoDeInscricao` (`paid`, `confirmed_at`, e-mail) e não gera Pix. Senão, redireciona pra "minhas inscrições", onde o atleta vê o valor (e o desconto) antes de pagar.
+
+O campo `equipe` (2026-09-22) é opcional e **texto livre**: só letras, números
+e espaço, até 50 caracteres, gravado em `team_name` em CAIXA ALTA e sem espaço
+sobrando (`Subscription::normalizarEquipe`). Existe `teams` desde 2026-08-29,
+mas na primeira prova ninguém sabe ainda quais assessorias vão aparecer —
+escolher de uma lista vazia seria pior. O nome da coluna guarda o lugar para o
+vínculo de verdade.
 
 Existe ainda `POST /subscribe/event/{event_id}/cupom` (autenticado, `throttle:20,1`) → `SubscribeController::previaDoCupom`: a prévia do formulário, que valida o código para o kit escolhido e devolve os valores em JSON sem criar nada.
 

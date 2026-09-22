@@ -6,6 +6,16 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Cidade no cadastro do atleta e equipe na inscrição (2026-09-22)
+- **Campo "Cidade" no cadastro**, vinculado de verdade: nova tabela `cities` com os **5.571 municípios do IBGE** (código oficial, nome e UF) e `users.city_id` apontando para ela. Nada de texto digitado — "Mogi Guaçu", "mogi guacu" e "MOGI GUAÇÚ" seriam três cidades diferentes na hora de contar de onde vem o pessoal.
+- **A busca começa com 3 letras** e é **insensível a acento e caixa**: a coluna `name_normalized` guarda o nome sem acento e em minúsculas, porque ninguém digita "São Paulo" com til no celular. Quem **começa** pelo termo vem primeiro — digitou "mogi", "Mogi Guaçu" antes de "Itamogi". Devolve no máximo 20.
+- **A lista mora no nosso banco**, não na API do IBGE. Consulta externa a cada tecla colocaria a inscrição de alguém na dependência de um serviço de fora responder a tempo. O arquivo `database/data/municipios-ibge.json` é versionado (290 KB) e entra pelo `php artisan cidades:importar --force`, que roda no deploy — é upsert pelo código do IBGE, então repetir não duplica nem desfaz vínculo.
+- **Cidade é opcional**, mas quem digita e **não escolhe da lista não passa**: sem isso o texto sumiria em silêncio e a pessoa sairia achando que informou a cidade. Quem já tinha conta continua sem cidade — não existe tela de editar perfil (backlog).
+- **Campo "Equipe" na inscrição**, logo depois do cupom: texto livre, só letras, números e espaço, até 50 caracteres, gravado em **CAIXA ALTA** (`mb_strtoupper`, para "são" virar "SÃO" e não "SãO") e sem espaço sobrando — "corre mogi", "Corre Mogi" e "CORRE  MOGI" viravam três equipes na hora de contar quem trouxe mais gente.
+- A coluna é **`team_name`** e não `team_id`: existe cadastro de equipes no painel desde 2026-08-29, mas na primeira prova ninguém sabe ainda quais assessorias vão aparecer, e escolher de uma lista vazia seria pior. O nome do campo deixa claro que é texto solto e guarda o lugar para o vínculo de verdade.
+- No painel: a **equipe** aparece na lista de inscrições e na ficha do atleta; a **cidade**, na lista de atletas e na ficha.
+- 21 testes novos. Suíte: **393 testes, 1251 asserções**.
+
 ### "Sobre nós" da home vira tela do painel (2026-09-22)
 - **Tag, título, texto, rótulo do botão e link** do bloco de apresentação da home estavam escritos no Blade. O efeito que ninguém tinha notado: **o mesmo texto saía em todos os sites da plataforma** — o site do Borafitness exibia "a **Corre Virtual** é a comunidade que combina saúde, diversão…". E o botão apontava para `href="#"`: nunca levou a lugar nenhum.
 - **Nova tela `/admin/sobre`** (menu "Sobre nós"), registro único por organizador: cinco campos, upload da foto e remoção dela. Sem `index` nem `destroy` — é uma seção do site, não uma lista.

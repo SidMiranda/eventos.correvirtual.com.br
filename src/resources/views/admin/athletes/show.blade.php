@@ -25,6 +25,7 @@
                             'Telefone' => $atleta->phone,
                             'Nascimento' => $atleta->birth_date ? \Carbon\Carbon::parse($atleta->birth_date)->format('d/m/Y') : null,
                             'Sexo' => $sexo[$atleta->sex] ?? null,
+                            'Cidade' => $atleta->city?->nomeCompleto(),
                             'Cadastrado em' => $atleta->created_at?->format('d/m/Y'),
                         ];
                     @endphp
@@ -64,6 +65,7 @@
                                     <tr>
                                         <th>Evento</th>
                                         <th>Modalidade / kit</th>
+                                        <th>Equipe</th>
                                         <th class="text-right">Valor</th>
                                         <th class="text-center">Situação</th>
                                     </tr>
@@ -79,6 +81,7 @@
                                                 <div>{{ $inscricao->modality->name ?? '—' }}</div>
                                                 <div class="small text-muted">{{ $inscricao->kit->name ?? '—' }}</div>
                                             </td>
+                                            <td class="small">{{ $inscricao->team_name ?: '—' }}</td>
                                             <td class="text-right">
                                                 <div class="font-weight-500">R$ {{ number_format($inscricao->price, 2, ',', '.') }}</div>
                                                 @if ($inscricao->temDesconto())

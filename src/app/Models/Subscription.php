@@ -14,6 +14,7 @@ class Subscription extends Model
         'event_id',
         'modality_id',
         'kit_id',
+        'team_name',
         'list_price',
         'discount_amount',
         'coupon_id',
@@ -126,6 +127,21 @@ class Subscription extends Model
     public function pendente(): bool
     {
         return $this->status === self::PENDENTE;
+    }
+
+    /**
+     * A equipe como ela é guardada: sem espaço sobrando e em CAIXA ALTA.
+     *
+     * É texto livre (decisão do dono em 2026-09-22), então "corre mogi",
+     * "Corre Mogi" e "CORRE  MOGI" chegariam como três equipes diferentes na
+     * hora de contar quem trouxe mais gente. Normalizar na entrada é o que
+     * evita isso — `mb_strtoupper` para "são" virar "SÃO", e não "SãO".
+     */
+    public static function normalizarEquipe(?string $nome): ?string
+    {
+        $nome = trim(preg_replace('/\s+/u', ' ', (string) $nome));
+
+        return $nome === '' ? null : mb_strtoupper($nome, 'UTF-8');
     }
 
     public function cancelada(): bool

@@ -10,6 +10,7 @@
            redesign (backlog) — não vale abrir arquivo novo para isso. */
         .cupom-linha { display: flex; gap: 8px; width: 100%; }
         .cupom-linha input[type="text"] { flex: 1; margin-bottom: 0; text-transform: uppercase; }
+        #campoEquipe { text-transform: uppercase; }
         .cupom-linha button {
             width: auto; margin-top: 0; padding: 12px 18px; white-space: nowrap;
             background: #fff; color: #2e7d32; border: 1px solid #2e7d32;
@@ -77,6 +78,17 @@
 
                 {{-- A prévia é conveniência: o servidor confere tudo de novo no envio. --}}
                 <div class="previa-cupom" id="previaCupom" hidden></div>
+
+                {{-- Equipe: texto livre por ora (decisão do dono em 2026-09-22).
+                     Existe cadastro de equipes no painel desde 2026-08-29, mas
+                     na primeira prova ninguém sabe ainda quais assessorias vão
+                     aparecer — pedir que o atleta escolha de uma lista vazia
+                     seria pior. Gravado em CAIXA ALTA para "corre mogi" e
+                     "CORRE MOGI" não virarem duas equipes na hora de contar. --}}
+                <input type="text" name="equipe" id="campoEquipe" maxlength="50"
+                       placeholder="Equipe (opcional)" autocomplete="off" spellcheck="false"
+                       value="{{ old('equipe') }}">
+                <p class="cupom-dica">Corre por alguma assessoria ou grupo? Escreva o nome — letras, números e espaços, até 50 caracteres.</p>
 
                 <button type="submit" class="btn-primary">
                     Confirmar inscrição
@@ -163,6 +175,11 @@
     // Enter no campo aplica, em vez de enviar o formulário inteiro.
     cupom.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); aplicar(); } });
     cupom.addEventListener('input', function () { cupom.value = cupom.value.toUpperCase(); });
+
+    // A equipe também sobe em caixa alta — o servidor normaliza de novo, isto
+    // é só para a pessoa ver na tela o que vai ser gravado.
+    var equipe = document.getElementById('campoEquipe');
+    if (equipe) { equipe.addEventListener('input', function () { equipe.value = equipe.value.toUpperCase(); }); }
 
     // Voltou do servidor com o cupom preenchido (old()): mostra a conta de novo.
     if (cupom.value.trim() && kit.value) { aplicar(); }
