@@ -89,10 +89,16 @@ class SubscribeController extends Controller
             // lista de largada e para o relatório do organizador — pontuação e
             // símbolo ali só criam equipe duplicada e linha torta no papel.
             'equipe'      => ['nullable', 'string', 'max:50', 'regex:/^[\p{L}\p{N} ]+$/u'],
+            // Opcional enquanto existir kit "sem camiseta" à venda: exigir
+            // tamanho de quem não vai receber camiseta trava a inscrição por
+            // nada. A lista de tamanhos é fechada — o que vier de fora dela é
+            // erro de formulário adulterado, não escolha de ninguém.
+            'camiseta'    => ['nullable', Rule::in(Subscription::tamanhosDeCamiseta())],
         ], [
             'required' => 'Por favor, selecione as opções de modalidade e kit.',
             'exists'   => 'A modalidade ou o kit selecionado não é válido para este evento.',
             'equipe.regex' => 'O nome da equipe aceita só letras, números e espaços.',
+            'camiseta.in'  => 'Escolha um dos tamanhos de camiseta da lista.',
             'equipe.max'   => 'O nome da equipe passou de 50 caracteres.',
             'cupom.max' => 'O código do cupom é curto: 6 ou 7 caracteres.',
         ]);
@@ -130,12 +136,13 @@ class SubscribeController extends Controller
             // Em caixa alta e sem espaço sobrando: a mesma equipe escrita de
             // três jeitos viraria três equipes na hora de contar.
             $equipe = Subscription::normalizarEquipe($request->input('equipe'));
+            $camiseta = $request->input('camiseta') ?: null;
 
             // Consumo do cupom e criação da inscrição na mesma transação: se a
             // inscrição falhar, o uso volta sozinho. O registrarUso() é um
             // UPDATE condicional — entre a prévia e o envio a última vaga pode
             // ter ido para outro atleta, e é aqui que isso aparece.
-            $subscription = DB::transaction(function () use ($event, $modalityInput, $kitInput, $equipe, $cupom, $preco, $inscricaoExistente) {
+            $subscription = DB::transaction(function () use ($event, $modalityInput, $kitInput, $equipe, $camiseta, $cupom, $preco, $inscricaoExistente) {
                 if ($cupom && ! $cupom->registrarUso()) {
                     throw new CupomRecusado("O cupom \"{$cupom->code}\" acabou de atingir o limite de usos.");
                 }
@@ -144,6 +151,7 @@ class SubscribeController extends Controller
                     'modality_id' => $modalityInput,
                     'kit_id'      => $kitInput,
                     'team_name'   => $equipe,
+                    'shirt_size'  => $camiseta,
                     'status'      => Subscription::PENDENTE,
                     'bib_number'  => null,
                 ] + $preco->paraInscricao();

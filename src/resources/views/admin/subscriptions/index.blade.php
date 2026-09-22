@@ -161,6 +161,9 @@
                                         @if ($inscricao->team_name)
                                             <div class="small"><i data-feather="users" style="width:12px;height:12px;"></i> {{ $inscricao->team_name }}</div>
                                         @endif
+                                        @if ($inscricao->shirt_size)
+                                            <div class="small text-muted">Camiseta {{ $inscricao->shirt_size }}</div>
+                                        @endif
                                     </td>
                                     <td class="text-right">
                                         <div class="font-weight-500">R$ {{ number_format($inscricao->price, 2, ',', '.') }}</div>

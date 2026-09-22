@@ -68,6 +68,33 @@
                     @endforeach
                 </select>
 
+                {{-- Camiseta: a tabela de medidas do fornecedor, igual para todos
+                     os eventos por enquanto (ver Subscription::CAMISETAS).
+                     Opcional de propósito: há kit "sem camiseta" à venda, e
+                     exigir tamanho de quem não vai receber camiseta trava a
+                     inscrição por nada. Quando cada evento declarar o que
+                     oferece, a exigência passa a vir do kit. --}}
+                <select name="camiseta" id="campoCamiseta">
+                    <option value="">Tamanho da camiseta</option>
+
+                    <optgroup label="Camiseta">
+                        @foreach (\App\Models\Subscription::CAMISETAS as $codigo => $medida)
+                            <option value="{{ $codigo }}" @selected(old('camiseta') === $codigo)>
+                                {{ $codigo }} — {{ $medida }}
+                            </option>
+                        @endforeach
+                    </optgroup>
+
+                    <optgroup label="Baby look">
+                        @foreach (\App\Models\Subscription::CAMISETAS_BABY_LOOK as $codigo => $medida)
+                            <option value="{{ $codigo }}" @selected(old('camiseta') === $codigo)>
+                                {{ $codigo }} — {{ $medida }}
+                            </option>
+                        @endforeach
+                    </optgroup>
+                </select>
+                <p class="cupom-dica">Medidas em largura x comprimento. Escolha só se o kit que você marcou inclui camiseta.</p>
+
                 <div class="cupom-linha">
                     <input type="text" name="cupom" id="campoCupom" maxlength="20"
                            placeholder="Tem um CUPOM?" autocomplete="off" spellcheck="false"

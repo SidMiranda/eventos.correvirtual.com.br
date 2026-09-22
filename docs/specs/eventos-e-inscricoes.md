@@ -11,7 +11,7 @@ Um atleta precisa conseguir ver os eventos de um organizador, escolher uma modal
 - `Event` (`organizer_id`, `title`, `slug`, `description`, `schedule`, `registration_info`, `location`, `event_date`, `registration_deadline`, `banner_url`, `banner_ratio`, `accent_color`, `active`)
 - `EventModality` (`event_id`, `name`, `distance_km`, `max_participants`, `registered_count`, `active`)
 - `EventKit` (`event_id`, `name`, `description`, `price`, `stock`, `sold`, `active`)
-- `Subscription` (`event_id`, `user_id`, `modality_id`, `kit_id`, `team_name`, `list_price`, `discount_amount`, `coupon_id`, `price`, `bib_number`, `status`, `confirmed_at`, `cancelled_at`) — único por `(event_id, user_id)` no banco
+- `Subscription` (`event_id`, `user_id`, `modality_id`, `kit_id`, `team_name`, `shirt_size`, `list_price`, `discount_amount`, `coupon_id`, `price`, `bib_number`, `status`, `confirmed_at`, `cancelled_at`) — único por `(event_id, user_id)` no banco
 
 ## Fluxos atuais
 
@@ -47,6 +47,13 @@ sobrando (`Subscription::normalizarEquipe`). Existe `teams` desde 2026-08-29,
 mas na primeira prova ninguém sabe ainda quais assessorias vão aparecer —
 escolher de uma lista vazia seria pior. O nome da coluna guarda o lugar para o
 vínculo de verdade.
+
+O campo `camiseta` (2026-09-22) grava `shirt_size` e é **opcional**: a lista de
+tamanhos é fechada (`Subscription::tamanhosDeCamiseta()`, a tabela do
+fornecedor, igual para todos os eventos por enquanto), mas existe kit "sem
+camiseta" à venda — exigir tamanho de quem não vai receber camiseta travaria a
+inscrição por nada. Quando o kit passar a declarar se inclui camiseta, a
+exigência vem dele.
 
 Existe ainda `POST /subscribe/event/{event_id}/cupom` (autenticado, `throttle:20,1`) → `SubscribeController::previaDoCupom`: a prévia do formulário, que valida o código para o kit escolhido e devolve os valores em JSON sem criar nada.
 

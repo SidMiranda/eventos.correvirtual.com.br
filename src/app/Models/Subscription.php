@@ -15,6 +15,7 @@ class Subscription extends Model
         'modality_id',
         'kit_id',
         'team_name',
+        'shirt_size',
         'list_price',
         'discount_amount',
         'coupon_id',
@@ -127,6 +128,51 @@ class Subscription extends Model
     public function pendente(): bool
     {
         return $this->status === self::PENDENTE;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Camiseta
+    |--------------------------------------------------------------------------
+    | A tabela de medidas do fornecedor, em largura x comprimento. Vive aqui
+    | porque hoje é a mesma para todos os eventos do organizador — quando cada
+    | evento passar a declarar as suas, isto vira tabela (ver o backlog).
+    */
+
+    public const CAMISETAS = [
+        'P' => '51 x 67 cm',
+        'M' => '54 x 70 cm',
+        'G' => '56 x 73 cm',
+        'GG' => '59 x 76 cm',
+        'EG' => '63 x 79 cm',
+        'EXG' => '67 x 83 cm',
+    ];
+
+    public const CAMISETAS_BABY_LOOK = [
+        'BLP' => '41 x 61 cm',
+        'BLM' => '43 x 63 cm',
+        'BLG' => '46 x 65 cm',
+        'BLGG' => '48 x 68 cm',
+    ];
+
+    /** Os códigos aceitos — é o que a validação do formulário confere. */
+    public static function tamanhosDeCamiseta(): array
+    {
+        return array_merge(array_keys(self::CAMISETAS), array_keys(self::CAMISETAS_BABY_LOOK));
+    }
+
+    /** "G (56 x 73 cm)" — o que aparece na tela e no painel. */
+    public function camisetaPorExtenso(): ?string
+    {
+        if (blank($this->shirt_size)) {
+            return null;
+        }
+
+        $medida = self::CAMISETAS[$this->shirt_size]
+            ?? self::CAMISETAS_BABY_LOOK[$this->shirt_size]
+            ?? null;
+
+        return $medida ? "{$this->shirt_size} ({$medida})" : $this->shirt_size;
     }
 
     /**

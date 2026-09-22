@@ -6,6 +6,14 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Tamanho da camiseta na inscrição (2026-09-22)
+- **Novo campo "Tamanho da camiseta"** logo abaixo do kit, com a tabela do fornecedor: seis tamanhos de camiseta (P a EXG) e quatro de baby look (BLP a BLGG), cada um mostrando a medida — "GG — 59 x 76 cm". Agrupados em dois `optgroup` para o atleta não confundir as duas réguas.
+- **Uma coluna só (`subscriptions.shirt_size`)**, como combinado: a tabela de medidas é a mesma para todos os eventos hoje, e o fluxo certo — cada evento declarando o que oferece — fica para depois.
+- **O campo é opcional**, e a razão é concreta: os kits do evento em produção são "Sem camiseta" e "Com camiseta". Exigir tamanho de quem comprou o kit sem camiseta travaria a inscrição por nada. A dica na tela diz "escolha só se o kit que você marcou inclui camiseta". Quando o kit passar a declarar se tem camiseta, a exigência vem dele.
+- A lista é fechada no servidor: tamanho fora da tabela é recusado, porque só chega ali por formulário adulterado.
+- No painel: o tamanho aparece na lista de inscrições e, com a medida por extenso, na ficha do atleta.
+- 8 testes novos. Suíte: **413 testes, 1330 asserções**.
+
 ### Placeholder do cupom na inscrição (2026-09-22)
 - O campo de cupom agora diz só **"Tem um CUPOM?"** no lugar de "Cupom de desconto (opcional)". A dica logo abaixo começava com a mesma pergunta e passou a ir direto ao ponto ("Escolha o kit, digite o código e aplique…"), para o campo e a linha de baixo não repetirem a mesma frase.
 
