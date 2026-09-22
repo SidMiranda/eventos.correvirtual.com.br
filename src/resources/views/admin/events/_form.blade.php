@@ -167,6 +167,21 @@
 </div>
 
 <div class="form-group">
+    <label class="small mb-1" for="registration_info">Informações da inscrição</label>
+    <textarea class="form-control @error('registration_info') is-invalid @enderror"
+              id="registration_info" name="registration_info" rows="5"
+              placeholder="O que a inscrição inclui, como retirar o kit, troca de tamanho de camiseta...">{{ old('registration_info', $event?->registration_info) }}</textarea>
+    @error('registration_info')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @else
+        <small class="form-text text-muted">
+            Aparece no bloco "Inscrição" da página do evento, com as quebras de linha que você usar.
+            A data de encerramento das inscrições sai sozinha logo abaixo — não precisa repetir aqui.
+        </small>
+    @enderror
+</div>
+
+<div class="form-group">
     <div class="custom-control custom-switch">
         <input type="hidden" name="active" value="0">
         <input class="custom-control-input" id="active" name="active" type="checkbox" value="1"

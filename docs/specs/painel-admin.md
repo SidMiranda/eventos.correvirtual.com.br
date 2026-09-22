@@ -104,6 +104,11 @@ do evento, e o texto chega à página com `nl2br(e(...))`: a quebra de linha e a
 linha em branco do organizador valem, sem aceitar HTML. Vazio ⇒ o bloco não
 aparece.
 
+**`events.registration_info`** (nova coluna, 2026-09-22) — `text` nullable, o
+texto do bloco "Inscrição" da página do evento, pelo mesmo motivo e com o mesmo
+tratamento do cronograma. A diferença: vazio, o bloco não some — a linha do
+prazo de inscrição é calculada e continua aparecendo.
+
 **`subscriptions.team_id`** (nova coluna) — `foreignId` nullable, `nullOnDelete()`: apagar uma equipe não pode apagar inscrição de ninguém, só desvincula.
 
 ### "Aberta" e "fechada"

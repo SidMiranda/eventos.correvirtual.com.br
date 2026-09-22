@@ -6,6 +6,12 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Bloco "Inscrição" da página do evento vira campo do cadastro (2026-09-22)
+- Mesmo caso do cronograma, um dia depois: a frase **"A inscrição dá direito ao kit exclusivo do evento"** estava chumbada no Blade e saía igual em toda prova. Era o lugar natural para dizer o que a inscrição inclui, onde e quando se retira o kit e como se troca o tamanho da camiseta — e não havia onde escrever isso.
+- **Nova coluna `events.registration_info`** (text, nullable) e um textarea de 5 linhas no formulário, logo abaixo do cronograma. Mesmo `nl2br(e(...))`: quebra de linha e linha em branco valem, HTML digitado não.
+- **O bloco não some quando o texto está vazio**, diferente do cronograma: a linha "Encerramento das inscrições" é calculada de `registration_deadline` e continua sempre lá. Some só o parágrafo livre.
+- 7 testes novos. Suíte: **348 testes, 1127 asserções**.
+
 ### Cronograma da prova vira campo do cadastro (2026-09-21)
 - **O bloco "Cronograma" da página do evento era texto fixo no Blade** — herança do tempo em que o catálogo era mocado. Toda prova, sem exceção, exibia "04h abertura do estacionamento, 05h30 largada 10km, 06h largada 5km, 08h30 premiação", inclusive a que larga às 7h e não tem 10km. Não havia onde corrigir: o organizador não tinha campo nenhum.
 - **Nova coluna `events.schedule`** (text, nullable) e um bloco no formulário do painel, logo **depois da Cor do evento**: um textarea de 7 linhas, um horário por linha.

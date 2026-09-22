@@ -156,6 +156,9 @@ class EventController extends AdminController
             // Opcional: nem todo evento tem a programação fechada na hora do
             // cadastro. Sem cronograma, o bloco some da página.
             'schedule' => ['nullable', 'string', 'max:5000'],
+            // O texto do bloco "Inscrição": o que a inscrição inclui, a
+            // retirada do kit, a troca de tamanho. Também opcional.
+            'registration_info' => ['nullable', 'string', 'max:5000'],
             'location' => ['required', 'string', 'max:255'],
             'event_date' => ['required', 'date'],
             'registration_deadline' => ['required', 'date', 'before_or_equal:event_date'],

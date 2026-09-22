@@ -135,9 +135,16 @@
         </div>
       @endif
 
+      {{-- O bloco fica sempre de pé por causa do prazo, que é calculado. O que
+           virou campo do cadastro é o texto acima dele: até 2026-09-22 era a
+           frase fixa "A inscrição dá direito ao kit exclusivo do evento",
+           igual em toda prova, sem lugar para dizer como se retira o kit ou
+           como se troca o tamanho da camiseta. --}}
       <div class="info-block">
         <h2>Inscrição</h2>
-        <p>A inscrição dá direito ao kit exclusivo do evento.</p>
+        @if (filled($event->registration_info))
+          <p>{!! nl2br(e($event->registration_info)) !!}</p>
+        @endif
         <p><strong>Encerramento das inscrições:</strong> {{ \Carbon\Carbon::parse($event->registration_deadline)->format('d/m/Y \à\s H:i') }}</p>
       </div>
 
