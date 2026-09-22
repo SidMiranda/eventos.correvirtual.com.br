@@ -6,6 +6,17 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### "Sobre nós" da home vira tela do painel (2026-09-22)
+- **Tag, título, texto, rótulo do botão e link** do bloco de apresentação da home estavam escritos no Blade. O efeito que ninguém tinha notado: **o mesmo texto saía em todos os sites da plataforma** — o site do Borafitness exibia "a **Corre Virtual** é a comunidade que combina saúde, diversão…". E o botão apontava para `href="#"`: nunca levou a lugar nenhum.
+- **Nova tela `/admin/sobre`** (menu "Sobre nós"), registro único por organizador: cinco campos, upload da foto e remoção dela. Sem `index` nem `destroy` — é uma seção do site, não uma lista.
+- **Cinco colunas novas em `organizers`** (`about_badge`, `about_title`, `about_text`, `about_button_label`, `about_button_url`). A migration devolve o texto que estava no Blade **só para a Corre Virtual**, que é de quem ele fala: o site entra no ar hoje e não podia mudar de aparência por causa disso. Os demais organizadores nascem vazios.
+- **O layout não mudou em nada** — CSS do componente intocado, byte a byte. Medido no navegador antes e depois: as duas metades dão 608 e 528px a 1440px de largura nas duas versões, e no celular empilham em 305px cada, sem rolagem horizontal.
+- **Sem título e texto, a seção inteira some** da home (cabeçalho "SOBRE NOS" junto) — meia seção vazia ao lado de uma foto é pior que seção nenhuma. **Sem link, o botão não aparece**, em vez do `href="#"` de antes. Sem foto, o `onerror` esconde a metade da direita e o texto ocupa a largura toda.
+- **Uma regra só para todo texto livre do painel** (`App\Support\TextoDoSite`): escape primeiro, `**negrito**` depois, quebra de linha por último. As duas palavras em negrito do texto original continuam em negrito, e descrição, cronograma e informações da inscrição do evento passaram a usar a mesma regra — tinham cada uma a sua chamada solta de `nl2br(e(...))` na view.
+- **A foto ganhou versão na URL.** O caminho no bucket é fixo e a gravação usa `Cache-Control: immutable`: sem o `?v={updated_at}`, trocar a foto pelo painel deixaria o CDN servindo a antiga por um ano. Quem troca só a imagem recebe um `touch` para mover a versão.
+- Saiu junto o `<script async src="//www.instagram.com/embed.js">` que o componente carregava: sobra de uma versão antiga, sem nenhum embed na página, custando uma requisição externa em todo carregamento da home.
+- 24 testes novos. Suíte: **372 testes, 1191 asserções**.
+
 ### Bloco "Inscrição" da página do evento vira campo do cadastro (2026-09-22)
 - Mesmo caso do cronograma, um dia depois: a frase **"A inscrição dá direito ao kit exclusivo do evento"** estava chumbada no Blade e saía igual em toda prova. Era o lugar natural para dizer o que a inscrição inclui, onde e quando se retira o kit e como se troca o tamanho da camiseta — e não havia onde escrever isso.
 - **Nova coluna `events.registration_info`** (text, nullable) e um textarea de 5 linhas no formulário, logo abaixo do cronograma. Mesmo `nl2br(e(...))`: quebra de linha e linha em branco valem, HTML digitado não.

@@ -16,7 +16,24 @@ class Organizer extends Model
         'email',
         'slug',
         'active',
+        'about_badge',
+        'about_title',
+        'about_text',
+        'about_button_label',
+        'about_button_url',
     ];
+
+    /**
+     * O bloco "Sobre nós" da home tem conteúdo?
+     *
+     * Título e texto são o mínimo: sem eles o bloco seria uma metade vazia ao
+     * lado de uma foto. Organizador que ainda não escreveu o próprio texto
+     * simplesmente não mostra a seção (ver components/app/about.blade.php).
+     */
+    public function temSobre(): bool
+    {
+        return filled($this->about_title) && filled($this->about_text);
+    }
 
     public function events()
     {

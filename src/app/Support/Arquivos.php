@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Event;
+use App\Models\Organizer;
 use App\Models\Photo;
 use App\Models\Sponsor;
 use App\Models\Team;
@@ -125,9 +126,23 @@ class Arquivos
         return self::url("organizadores/{$organizerId}/banner-mobile.jpg");
     }
 
-    public static function sobreNosDoOrganizador(int $organizerId): string
+    /**
+     * A foto do bloco "Sobre nós".
+     *
+     * Aceita o organizador inteiro para poder acrescentar `?v={updated_at}`: o
+     * caminho no bucket é fixo e a gravação usa `Cache-Control: immutable`,
+     * então sem a versão a foto trocada pelo painel continuaria mostrando a
+     * antiga por um ano no CDN. Passar só o id ainda funciona (é o que o
+     * `$organizerId` compartilhado nas views tem), só não leva a versão.
+     */
+    public static function sobreNosDoOrganizador(Organizer|int $organizador): string
     {
-        return self::url("organizadores/{$organizerId}/sobre-nos.jpg");
+        $id = $organizador instanceof Organizer ? $organizador->id : $organizador;
+        $url = self::url("organizadores/{$id}/sobre-nos.jpg");
+
+        $versao = $organizador instanceof Organizer ? $organizador->updated_at?->timestamp : null;
+
+        return $versao ? "{$url}?v={$versao}" : $url;
     }
 
     /**

@@ -98,10 +98,9 @@
 
       <div class="info-block">
         <h2>Descrição</h2>
-        {{-- `e()` escapa o que foi digitado e só depois o `nl2br` insere os
-             <br>: assim a quebra de linha do painel aparece aqui, sem abrir a
-             porta para HTML vindo do formulário. --}}
-        <p>{!! nl2br(e($event->description)) !!}</p>
+        {{-- Uma regra só para todo texto livre do painel: escape primeiro,
+             `**negrito**`, quebra de linha depois. Ver App\Support\TextoDoSite. --}}
+        <p>{!! \App\Support\TextoDoSite::paraHtml($event->description) !!}</p>
       </div>
 
       <div class="info-block">
@@ -131,7 +130,7 @@
       @if (filled($event->schedule))
         <div class="info-block">
           <h2>Cronograma</h2>
-          <p>{!! nl2br(e($event->schedule)) !!}</p>
+          <p>{!! \App\Support\TextoDoSite::paraHtml($event->schedule) !!}</p>
         </div>
       @endif
 
@@ -143,7 +142,7 @@
       <div class="info-block">
         <h2>Inscrição</h2>
         @if (filled($event->registration_info))
-          <p>{!! nl2br(e($event->registration_info)) !!}</p>
+          <p>{!! \App\Support\TextoDoSite::paraHtml($event->registration_info) !!}</p>
         @endif
         <p><strong>Encerramento das inscrições:</strong> {{ \Carbon\Carbon::parse($event->registration_deadline)->format('d/m/Y \à\s H:i') }}</p>
       </div>

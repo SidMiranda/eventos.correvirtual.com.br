@@ -109,6 +109,18 @@ texto do bloco "Inscrição" da página do evento, pelo mesmo motivo e com o mes
 tratamento do cronograma. A diferença: vazio, o bloco não some — a linha do
 prazo de inscrição é calculada e continua aparecendo.
 
+**`organizers.about_*`** (novas colunas, 2026-09-22) — `about_badge`,
+`about_title`, `about_text`, `about_button_label` e `about_button_url`: o bloco
+"Sobre nós" da home, que era texto fixo no Blade e saía igual em todos os sites
+da plataforma. Ficam no próprio `organizers` porque é um registro por
+organizador — tabela à parte para uma linha só seria um join sem ganho. A foto
+continua no bucket, em `publico/organizadores/{id}/sobre-nos.jpg`, agora com
+upload pelo painel (ver `App\Support\ImagensDoSobre`).
+
+A tela é registro único: `edit` e `update`, sem `index` e sem `destroy`. Como
+não há id na URL, o isolamento não é o 404 do resto do painel — é o controller
+nunca aceitar organizador vindo da requisição, sempre o do usuário logado.
+
 **`subscriptions.team_id`** (nova coluna) — `foreignId` nullable, `nullOnDelete()`: apagar uma equipe não pode apagar inscrição de ninguém, só desvincula.
 
 ### "Aberta" e "fechada"
@@ -132,6 +144,8 @@ resource /admin/patrocinadores        patrocinadores
 resource /admin/cupons                cupons (sem create/edit: o form e um modal)
 PATCH    /admin/cupons/{id}/status    liga/desliga o cupom
 resource /admin/fotos                 galeria de fotos da home (cadastro em lote)
+GET      /admin/sobre                 bloco "Sobre nos" da home (registro unico)
+PUT      /admin/sobre                 salva o bloco
 GET      /admin/inscricoes            lista de inscricoes, com filtros
 GET      /admin/inscricoes/pdf        relatorio do evento (abre em aba nova)
 GET      /admin/atletas               atletas que se inscreveram nos meus eventos

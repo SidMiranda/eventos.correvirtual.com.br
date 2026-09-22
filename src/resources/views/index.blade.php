@@ -78,13 +78,18 @@
         </div>
     @endif
 
-    <div class="container" id="sobre">
-        <h2 class="block-header-title">
-            SOBRE <span> NOS </span>
-        </h2>
+    {{-- Organizador que ainda não escreveu o próprio "sobre" não mostra a
+         seção: até 2026-09-22 o texto era fixo no Blade e saía igual em todos
+         os sites — inclusive falando da Corre Virtual no site de outro. --}}
+    @if ($organizador?->temSobre())
+        <div class="container" id="sobre">
+            <h2 class="block-header-title">
+                SOBRE <span> NOS </span>
+            </h2>
 
-        <x-app.about />
-    </div>
+            <x-app.about />
+        </div>
+    @endif
 
     <x-app.foot />
 

@@ -132,6 +132,7 @@
             --icone-fotos:       #475569;  /* grafite: o único neutro, como uma foto */
             --icone-inscricoes:  #0369a1;  /* azul profundo: o movimento do evento */
             --icone-atletas:     #9a3412;  /* terracota: gente que corre */
+            --icone-sobre:       #0d9488;  /* verde-água: a apresentação da casa */
         }
 
         /* Miniatura da galeria no painel: sempre quadrada, como na home. */
@@ -172,6 +173,9 @@
 
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-fotos .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-fotos .nav-link-icon .feather { color: var(--icone-fotos); }
+
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-sobre .nav-link-icon,
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-sobre .nav-link-icon .feather { color: var(--icone-sobre); }
 
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-inscricoes .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-inscricoes .nav-link-icon .feather { color: var(--icone-inscricoes); }
@@ -325,6 +329,12 @@
                            href="{{ route('admin.fotos.index') }}">
                             <div class="nav-link-icon"><i data-feather="image"></i></div>
                             Fotos
+                        </a>
+
+                        <a class="nav-link nav-icone-sobre {{ request()->routeIs('admin.sobre.*') ? 'active' : '' }}"
+                           href="{{ route('admin.sobre.edit') }}">
+                            <div class="nav-link-icon"><i data-feather="info"></i></div>
+                            Sobre nós
                         </a>
 
                     </div>

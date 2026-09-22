@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\EventKitController as AdminKitController;
 use App\Http\Controllers\Admin\AthleteController as AdminAthleteController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Admin\AboutController as AdminAboutController;
 use App\Http\Controllers\Admin\PhotoController as AdminPhotoController;
 use App\Http\Controllers\Admin\SponsorController as AdminSponsorController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
@@ -199,5 +200,10 @@ Route::middleware(['auth', 'organizer.admin'])
         Route::resource('fotos', AdminPhotoController::class)
             ->except(['show'])
             ->parameters(['fotos' => 'id']);
+
+        // O bloco "Sobre nós" da home. Registro único — é uma seção do site,
+        // não uma lista —, por isso só editar e salvar, sem index nem destroy.
+        Route::get('sobre', [AdminAboutController::class, 'edit'])->name('sobre.edit');
+        Route::put('sobre', [AdminAboutController::class, 'update'])->name('sobre.update');
 
     });

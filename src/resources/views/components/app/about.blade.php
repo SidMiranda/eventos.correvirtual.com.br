@@ -136,36 +136,51 @@
     }
 </style>
 
+@php
+    // O conteúdo vem do organizador do domínio atual. Até 2026-09-22 tag,
+    // título, os quatro parágrafos e o rótulo do botão estavam escritos aqui
+    // no Blade — e o mesmo texto saía em todos os sites da plataforma,
+    // inclusive dizendo "a Corre Virtual é a comunidade que..." no site de
+    // outro organizador. O botão apontava para `href="#"`.
+    //
+    // O layout não mudou: duas metades (`flex: 1`), texto à esquerda, foto à
+    // direita, empilhadas abaixo de 768px.
+@endphp
+
 <div class="cv-container">
 
     <div class="cv-text-card">
-        <div class="cv-badge">
-            <span class="cv-dot"></span> SOBRE A PLATAFORMA
-        </div>
+        @if (filled($organizador->about_badge))
+            <div class="cv-badge">
+                <span class="cv-dot"></span> {{ $organizador->about_badge }}
+            </div>
+        @endif
 
-        <h2 class="cv-title">Corre Virtual - Desafie seus limites</h2>
+        <h2 class="cv-title">{{ $organizador->about_title }}</h2>
 
         <div class="cv-description">
-            <p>Uma experiência completa de treinos e corridas: a mesma energia de prova, com a flexibilidade de correr no seu tempo, na sua rota favorita e no seu ritmo.</p>
-
-            <p>Ideal para atletas de todos os níveis. Não importa se você está dando seus primeiros passos na corrida ou se já busca quebrar seus recordes pessoais, temos o desafio perfeito para você.</p>
-
-            <p>Venha com amigos, família e seu time de treinos. A <strong>Corre Virtual</strong> é a comunidade que combina saúde, diversão e o sentimento único de conquista, enviando medalhas exclusivas direto para a sua casa.</p>
-
-            <p>Transforme cada quilômetro em uma vitória. <strong>Vamos juntos!</strong></p>
+            <p>{!! \App\Support\TextoDoSite::paraHtml($organizador->about_text) !!}</p>
         </div>
 
-        <a href="#" class="cv-btn">COMEÇAR MEU DESAFIO</a>
+        {{-- Sem link o botão não sai: um botão que não leva a lugar nenhum é
+             pior que nenhum botão — e era exatamente o que acontecia antes,
+             com o `href="#"` fixo. --}}
+        @if (filled($organizador->about_button_url) && filled($organizador->about_button_label))
+            <a href="{{ $organizador->about_button_url }}" class="cv-btn" rel="noopener">{{ $organizador->about_button_label }}</a>
+        @endif
     </div>
 
-    <div class="cv-video-card">
+    {{-- A foto não tem marca no banco (ver Arquivos): assume-se que existe e o
+         `onerror` esconde a metade inteira quando não há nenhuma — assim o
+         texto ocupa a largura toda em vez de dividir espaço com um quadro
+         cinza vazio. --}}
+    <div class="cv-video-card" id="cv-sobre-foto">
         <div class="cv-video-wrapper">
-            <img src="{{ \App\Support\Arquivos::sobreNosDoOrganizador($organizerId) }}"
-            alt="Vídeo de Apresentação" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="{{ \App\Support\Arquivos::sobreNosDoOrganizador($organizador) }}"
+                 alt="{{ $organizador->about_title }}"
+                 style="width: 100%; height: 100%; object-fit: cover;"
+                 onerror="document.getElementById('cv-sobre-foto').style.display='none';">
         </div>
     </div>
 
 </div>
-
-
-<script async src="//www.instagram.com/embed.js"></script>

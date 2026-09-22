@@ -48,6 +48,7 @@ class IdentifyOrganizerByDomain
                 // quem usa (head.blade.php) trata isso.
                 View::share('organizerName', config('app.name'));
                 View::share('organizerId', null);
+                View::share('organizador', null);
                 View::share('organizerEmail', config('mail.from.address'));
 
                 return $next($request);
@@ -63,6 +64,10 @@ class IdentifyOrganizerByDomain
         // 4. Compartilha a variável globalmente com TODAS as views (Blade)
         View::share('organizerName', $organizer->name);
         View::share('organizerId', $organizer->id);
+        // O organizador inteiro, e não só o id: o bloco "Sobre nós" da home lê
+        // o texto dele (ver components/app/about.blade.php). Ele já está
+        // carregado aqui, então não custa consulta nenhuma.
+        View::share('organizador', $organizer);
         View::share('organizerEmail', $organizer->email);
 
         // (Opcional) Adiciona ao request para facilitar o uso nos controllers

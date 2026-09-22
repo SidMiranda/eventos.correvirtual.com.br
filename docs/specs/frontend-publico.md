@@ -208,3 +208,31 @@ Um organizador que ainda não tem `banner.jpg` no bucket também não vai ter `o
 # Fase 3 — galeria de fotos (2026-09-20)
 
 Uma faixa no estilo do feed do Instagram, logo depois de "Próximos eventos": 100% da largura, fotos quadradas, 6 colunas × 2 linhas no desktop (12 fotos) e 2 colunas × 3 linhas no celular (as 6 primeiras). As fotos vêm do painel (`/admin/fotos`), não do Instagram — decisão do dono. Sem foto ativa, a seção não aparece, e o menu do site ganhou o link "Fotos". Spec completo, com a tabela, o recorte e o tratamento de orientação EXIF, em `docs/specs/galeria-de-fotos.md`.
+
+---
+
+## "Sobre nós" vem do painel (2026-09-22)
+
+O bloco de apresentação no fim da home — tag, título, texto, botão e foto —
+era escrito no Blade. Como o componente é o mesmo para todos os sites da
+plataforma, o texto da Corre Virtual saía também no site de outro organizador,
+dizendo "a **Corre Virtual** é a comunidade que…". O botão tinha `href="#"`
+desde sempre.
+
+Agora o conteúdo vem do organizador do domínio atual (`organizers.about_*`,
+editado em `/admin/sobre`; ver `docs/specs/painel-admin.md`). **O layout não
+mudou**: `.cv-container` continua com as duas metades em `flex: 1`, empilhando
+abaixo de 768px, e o CSS do componente não foi tocado.
+
+Três coisas somem quando não há o que mostrar, em vez de aparecerem vazias:
+
+| Falta | O que acontece |
+|---|---|
+| título **e** texto | a seção inteira não é renderizada, com o cabeçalho "SOBRE NOS" junto |
+| link do botão | o botão não sai (antes ficava um `href="#"` que não levava a lugar nenhum) |
+| foto no bucket | o `onerror` esconde a metade da direita e o texto ocupa a largura toda |
+
+O texto passa por `App\Support\TextoDoSite`: escape, `**negrito**`, quebra de
+linha — a mesma regra da descrição, do cronograma e das informações de
+inscrição do evento.
+
