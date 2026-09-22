@@ -153,6 +153,9 @@ class EventController extends AdminController
         $dados = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
+            // Opcional: nem todo evento tem a programação fechada na hora do
+            // cadastro. Sem cronograma, o bloco some da página.
+            'schedule' => ['nullable', 'string', 'max:5000'],
             'location' => ['required', 'string', 'max:255'],
             'event_date' => ['required', 'date'],
             'registration_deadline' => ['required', 'date', 'before_or_equal:event_date'],

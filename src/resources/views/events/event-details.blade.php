@@ -98,7 +98,10 @@
 
       <div class="info-block">
         <h2>Descrição</h2>
-        <p>{{ $event->description }}</p>
+        {{-- `e()` escapa o que foi digitado e só depois o `nl2br` insere os
+             <br>: assim a quebra de linha do painel aparece aqui, sem abrir a
+             porta para HTML vindo do formulário. --}}
+        <p>{!! nl2br(e($event->description)) !!}</p>
       </div>
 
       <div class="info-block">
@@ -120,15 +123,17 @@
         @endif
       </div>
 
-      <div class="info-block">
-        <h2>Cronograma</h2>
-        <p>
-          04h - Abertura do estacionamento<br>
-          05h30 - Largada 10km<br>
-          06h - Largada 5km<br>
-          08h30 - Premiação
-        </p>
-      </div>
+      {{-- Até 2026-09-21 este bloco era texto fixo no Blade, herdado do tempo
+           do catálogo mocado: toda prova mostrava "05h30 largada 10km", mesmo
+           a que larga às 7h e não tem 10km. Agora vem do cadastro, e evento
+           sem programação fechada não mostra bloco nenhum — melhor que exibir
+           o horário de outra corrida. --}}
+      @if (filled($event->schedule))
+        <div class="info-block">
+          <h2>Cronograma</h2>
+          <p>{!! nl2br(e($event->schedule)) !!}</p>
+        </div>
+      @endif
 
       <div class="info-block">
         <h2>Inscrição</h2>

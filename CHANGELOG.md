@@ -6,6 +6,14 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Cronograma da prova vira campo do cadastro (2026-09-21)
+- **O bloco "Cronograma" da página do evento era texto fixo no Blade** — herança do tempo em que o catálogo era mocado. Toda prova, sem exceção, exibia "04h abertura do estacionamento, 05h30 largada 10km, 06h largada 5km, 08h30 premiação", inclusive a que larga às 7h e não tem 10km. Não havia onde corrigir: o organizador não tinha campo nenhum.
+- **Nova coluna `events.schedule`** (text, nullable) e um bloco no formulário do painel, logo **depois da Cor do evento**: um textarea de 7 linhas, um horário por linha.
+- **A quebra de linha e a linha em branco valem.** O texto sai `nl2br(e(...))`: o `e()` escapa o que foi digitado e só depois entram os `<br>` — assim o cronograma aparece na página exatamente como foi escrito, sem abrir a porta para HTML vindo do formulário. Serve para separar um dia do outro ("SÁBADO — retirada do kit", linha em branco, "DOMINGO — largada").
+- **A descrição do evento ganhou o mesmo tratamento.** Ela já era um textarea, mas saía dentro de um `<p>` com `{{ }}`: o organizador escrevia em parágrafos e o atleta lia um bloco corrido.
+- **Sem cronograma, o bloco não aparece.** Evento com a programação ainda em aberto mostra uma seção a menos — melhor que mostrar o horário de outra corrida.
+- 9 testes novos. Suíte: **341 testes, 1105 asserções**.
+
 ### Banner do evento: sem canto arredondado e sem corte no celular (2026-09-21)
 - **Tirado o `border-radius`** do topo da página do evento. O banner encosta nas bordas, e canto redondo ali deixava um respiro esquisito contra o fundo. Vale para os dois casos — com banner e com o degradê.
 - **No celular o banner era cortado.** A regra `@media (max-width: 768px)` fixava `height: 200px` para o topo, o que vencia o `height: auto` do banner com imagem: com `cover`, a arte perdia as laterais — justo onde ficam as logos de quem realiza e patrocina. Agora o banner com imagem mantém a proporção da própria arte também no celular (num 5:1 a 375px de largura, o quadro fica com 75px de altura e mostra tudo).

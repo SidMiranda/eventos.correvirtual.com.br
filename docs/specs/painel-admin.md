@@ -97,6 +97,13 @@ Nenhuma tabela existente é alterada, exceto pela coluna nova em `subscriptions`
 
 **`photos`** (nova, 2026-09-20) — a galeria de fotos da home, também do **organizador**. Cadastro em lote, duas derivadas no bucket (`publico/organizadores/{id}/fotos/{id}.jpg`, o quadrado de 700×700, e `{id}-inteira.jpg`, a foto toda para o hover), sem coluna `has_image`: linha existe ⇒ imagem existe. Colunas `caption`, `link_url`, `position`, `active`. Ver `docs/specs/galeria-de-fotos.md`.
 
+**`events.schedule`** (nova coluna, 2026-09-21) — `text` nullable, o cronograma
+da prova. Antes o bloco era texto fixo no Blade da página do evento e mostrava
+os mesmos horários em toda prova. O campo fica no formulário logo depois da cor
+do evento, e o texto chega à página com `nl2br(e(...))`: a quebra de linha e a
+linha em branco do organizador valem, sem aceitar HTML. Vazio ⇒ o bloco não
+aparece.
+
 **`subscriptions.team_id`** (nova coluna) — `foreignId` nullable, `nullOnDelete()`: apagar uma equipe não pode apagar inscrição de ninguém, só desvincula.
 
 ### "Aberta" e "fechada"

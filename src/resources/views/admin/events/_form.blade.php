@@ -147,6 +147,25 @@
     @enderror
 </div>
 
+<hr class="my-4">
+<h6 class="text-muted mb-3" style="letter-spacing:.06em; text-transform:uppercase; font-size:12px;">Cronograma da prova</h6>
+
+<div class="form-group">
+    <label class="small mb-1" for="schedule">Programação</label>
+    <textarea class="form-control @error('schedule') is-invalid @enderror"
+              id="schedule" name="schedule" rows="7"
+              placeholder="04h - Abertura do estacionamento&#10;05h30 - Largada 10km&#10;06h - Largada 5km&#10;08h30 - Premiação">{{ old('schedule', $event?->schedule) }}</textarea>
+    @error('schedule')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @else
+        <small class="form-text text-muted">
+            Um horário por linha, como você escrever aqui — a quebra de linha e a linha em branco
+            aparecem iguais na página do evento. Deixe em branco se a programação ainda não fechou:
+            o bloco simplesmente não aparece.
+        </small>
+    @enderror
+</div>
+
 <div class="form-group">
     <div class="custom-control custom-switch">
         <input type="hidden" name="active" value="0">

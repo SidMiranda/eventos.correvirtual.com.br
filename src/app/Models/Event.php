@@ -14,6 +14,7 @@ class Event extends Model
         'title',
         'slug',
         'description',
+        'schedule',
         'location',
         'event_date',
         'registration_deadline',

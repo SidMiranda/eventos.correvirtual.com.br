@@ -8,7 +8,7 @@ Um atleta precisa conseguir ver os eventos de um organizador, escolher uma modal
 
 ## Modelos envolvidos
 
-- `Event` (`organizer_id`, `title`, `slug`, `description`, `location`, `event_date`, `registration_deadline`, `banner_url`, `active`)
+- `Event` (`organizer_id`, `title`, `slug`, `description`, `schedule`, `location`, `event_date`, `registration_deadline`, `banner_url`, `banner_ratio`, `accent_color`, `active`)
 - `EventModality` (`event_id`, `name`, `distance_km`, `max_participants`, `registered_count`, `active`)
 - `EventKit` (`event_id`, `name`, `description`, `price`, `stock`, `sold`, `active`)
 - `Subscription` (`event_id`, `user_id`, `modality_id`, `kit_id`, `list_price`, `discount_amount`, `coupon_id`, `price`, `bib_number`, `status`, `confirmed_at`, `cancelled_at`) — único por `(event_id, user_id)` no banco
@@ -20,6 +20,11 @@ Um atleta precisa conseguir ver os eventos de um organizador, escolher uma modal
 
 ### Ver detalhe de um evento
 `GET /event/{event_id}` → `EventsController@show`. Busca por `organizer_id` do domínio atual + ID, com `modalities` e `kits` carregados. 404 se o evento não existir *ou não pertencer ao organizador atual* — este endpoint escopa por tenant corretamente.
+
+A descrição e o cronograma saem `nl2br(e(...))`: a quebra de linha digitada no
+painel vale na página, e o texto continua escapado. O bloco "Cronograma" só
+aparece com `schedule` preenchido — até 2026-09-21 ele era texto fixo no Blade,
+igual em todo evento (ver `docs/specs/painel-admin.md`).
 
 ### Formulário de inscrição
 `GET /subscribe/event/{event_id}` (autenticado) → `SubscribeController::showSubscribeForm`. **Bug (BUG-005):** busca o evento só por ID (`Event::findOrFail`), sem filtrar por organizador do domínio atual — diferente do endpoint de detalhe acima.
