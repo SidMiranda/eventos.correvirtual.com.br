@@ -6,6 +6,10 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Acesso ao painel para mais uma administradora, e o placeholder da cidade (2026-09-22)
+- **Isbel Domingos passa a administrar** o organizador Corre Virtual — de atleta para `organizer_admin`, ficando três administradores. Feito por migration porque o pedido veio sem o e-mail dela e `admin:criar` precisa do e-mail; a busca é pelo nome, insensível a acento e caixa. **Trava deliberada: só promove se houver exatamente uma pessoa com esse nome** — administrador enxerga CPF, e-mail e telefone de todos os inscritos, e promover a pessoa errada é pior que não promover. Com 0 ou 2 resultados a migration não faz nada e diz isso no log do deploy.
+- **Placeholder do campo cidade** virou só "Cidade". O anterior explicava o funcionamento ("digite 3 letras e escolha na lista") dentro do campo, o que ficava comprido e feio no meio do formulário.
+
 ### Cidade no cadastro do atleta e equipe na inscrição (2026-09-22)
 - **Campo "Cidade" no cadastro**, vinculado de verdade: nova tabela `cities` com os **5.571 municípios do IBGE** (código oficial, nome e UF) e `users.city_id` apontando para ela. Nada de texto digitado — "Mogi Guaçu", "mogi guacu" e "MOGI GUAÇÚ" seriam três cidades diferentes na hora de contar de onde vem o pessoal.
 - **A busca começa com 3 letras** e é **insensível a acento e caixa**: a coluna `name_normalized` guarda o nome sem acento e em minúsculas, porque ninguém digita "São Paulo" com til no celular. Quem **começa** pelo termo vem primeiro — digitou "mogi", "Mogi Guaçu" antes de "Itamogi". Devolve no máximo 20.

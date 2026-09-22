@@ -75,7 +75,7 @@ Outro
     id="campoCidade"
     autocomplete="off"
     maxlength="120"
-    placeholder="Cidade (digite 3 letras e escolha na lista)"
+    placeholder="Cidade"
     value="{{ old('cidade') }}"
     >
     <input type="hidden" name="city_id" id="campoCidadeId" value="{{ old('city_id') }}">
