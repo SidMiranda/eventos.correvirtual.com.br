@@ -12,10 +12,10 @@ use Tests\TestCase;
 /**
  * A cidade do atleta: busca e vínculo no cadastro.
  *
- * O campo é opcional (decisão do dono em 2026-09-22 — campo obrigatório novo
- * no meio do funil, no dia do lançamento, custa inscrição), mas o vínculo é
- * de verdade: `users.city_id` aponta para o município do IBGE. Quem digita e
- * não escolhe da lista não passa, para o texto não se perder em silêncio.
+ * O campo é obrigatório e a cidade tem de ser **escolhida da lista** (decisão
+ * do dono em 2026-09-22): o que vale é o `city_id`, não o texto digitado.
+ * Digitar o nome e não clicar na sugestão não conta — senão o dado chegaria
+ * como texto solto e "Mogi Guaçu" e "mogi guacu" virariam duas cidades.
  */
 class CidadeNoCadastroTest extends TestCase
 {
@@ -31,6 +31,8 @@ class CidadeNoCadastroTest extends TestCase
 
     private function dadosValidos(array $sobrescreve = []): array
     {
+        $cidade = City::factory()->chamada('Mogi Guaçu')->create();
+
         return array_merge([
             'name' => 'Fulano de Tal',
             'birth_date' => '1990-05-20',
@@ -39,6 +41,8 @@ class CidadeNoCadastroTest extends TestCase
             'email' => 'fulano@teste.com',
             'cpf' => '390.533.447-05',
             'password' => 'segredo123',
+            'cidade' => $cidade->nomeCompleto(),
+            'city_id' => $cidade->id,
         ], $sobrescreve);
     }
 
@@ -115,34 +119,29 @@ class CidadeNoCadastroTest extends TestCase
 
     public function test_a_cidade_escolhida_fica_vinculada_ao_atleta(): void
     {
-        $cidade = City::factory()->chamada('Mogi Guaçu')->create();
+        $dados = $this->dadosValidos();
 
-        $this->post('/register', $this->dadosValidos([
-            'cidade' => 'Mogi Guaçu - SP',
-            'city_id' => $cidade->id,
-        ]))->assertRedirect();
+        $this->post('/register', $dados)->assertRedirect();
 
         $atleta = User::where('email', 'fulano@teste.com')->first();
 
-        $this->assertSame($cidade->id, $atleta->city_id);
+        $this->assertSame($dados['city_id'], $atleta->city_id);
         $this->assertSame('Mogi Guaçu - SP', $atleta->city->nomeCompleto());
     }
 
-    public function test_cadastro_sem_cidade_continua_funcionando(): void
+    public function test_cadastro_sem_cidade_nao_passa(): void
     {
-        $this->post('/register', $this->dadosValidos())->assertRedirect();
+        $this->post('/register', $this->dadosValidos(['cidade' => null, 'city_id' => null]))
+            ->assertSessionHasErrors('cidade');
 
-        $atleta = User::where('email', 'fulano@teste.com')->first();
-
-        $this->assertNotNull($atleta);
-        $this->assertNull($atleta->city_id);
+        $this->assertDatabaseMissing('users', ['email' => 'fulano@teste.com']);
     }
 
     public function test_digitou_e_nao_escolheu_da_lista_nao_passa(): void
     {
-        // Sem isto, o que a pessoa digitou sumiria em silêncio e ela sairia
-        // achando que tinha informado a cidade.
-        $this->post('/register', $this->dadosValidos(['cidade' => 'Mogi']))
+        // O que vale é o id. Digitar o nome e não clicar na sugestão deixaria
+        // o dado entrar como texto solto.
+        $this->post('/register', $this->dadosValidos(['cidade' => 'Mogi', 'city_id' => null]))
             ->assertSessionHasErrors('city_id');
 
         $this->assertDatabaseMissing('users', ['email' => 'fulano@teste.com']);

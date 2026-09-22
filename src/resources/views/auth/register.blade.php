@@ -20,6 +20,7 @@
     .cidade-lista li:hover, .cidade-lista li[aria-selected="true"] { background: #eaf4ec; }
     .cidade-lista li.cidade-vazia { color: #666; cursor: default; }
     .cidade-lista li.cidade-vazia:hover { background: #fff; }
+    .aviso-responsavel { font-size: 13px; color: #666; margin: -8px 0 12px; text-align: left; }
 </style>
 
 <div class="modal-overlay" style="display:flex">
@@ -77,6 +78,7 @@ Outro
     maxlength="120"
     placeholder="Cidade"
     value="{{ old('cidade') }}"
+    required
     >
     <input type="hidden" name="city_id" id="campoCidadeId" value="{{ old('city_id') }}">
     <ul class="cidade-lista" id="listaCidades" hidden></ul>
@@ -105,6 +107,20 @@ placeholder="CPF"
 value="{{ old('cpf') }}"
 required
 >
+
+{{-- Só aparece para quem informa menos de 18 anos. Nasce escondido e o
+     JavaScript abaixo mostra conforme a data de nascimento — mas quem manda
+     é o servidor: esconder no front não é validar (ver RegisterController). --}}
+<div id="blocoResponsavel" hidden>
+    <input
+    type="text"
+    name="guardian_cpf"
+    id="campoCpfResponsavel"
+    placeholder="CPF do responsável"
+    value="{{ old('guardian_cpf') }}"
+    >
+    <p class="aviso-responsavel">Quem tem menos de 18 anos precisa do CPF de um responsável.</p>
+</div>
 
 <input 
 type="password"
@@ -246,6 +262,56 @@ Já tenho conta
         });
 
         campo.addEventListener('blur', function () { setTimeout(fechar, 120); });
+    })();
+
+    /* ------------------------------------------------------------------
+       CPF do responsável: aparece só para quem informa menos de 18 anos.
+
+       Esconder e mostrar aqui é conveniência. Quem decide é o servidor — a
+       data de nascimento e o CPF do responsável são conferidos lá, porque
+       qualquer um remove um `hidden` no navegador.
+       ------------------------------------------------------------------ */
+    (function () {
+        var nascimento = document.querySelector('input[name="birth_date"]');
+        var bloco = document.getElementById('blocoResponsavel');
+        var campo = document.getElementById('campoCpfResponsavel');
+        if (!nascimento || !bloco || !campo) { return; }
+
+        function menorDeIdade(valor) {
+            if (!valor) { return false; }
+            var data = new Date(valor + 'T00:00:00');
+            if (isNaN(data)) { return false; }
+
+            var hoje = new Date();
+            var idade = hoje.getFullYear() - data.getFullYear();
+            var mes = hoje.getMonth() - data.getMonth();
+            if (mes < 0 || (mes === 0 && hoje.getDate() < data.getDate())) { idade--; }
+
+            return idade < 18;
+        }
+
+        function conferir() {
+            var precisa = menorDeIdade(nascimento.value);
+            bloco.hidden = !precisa;
+            campo.required = precisa;
+            /* Virou maior de idade no meio do preenchimento: o que estava
+               digitado no campo escondido não pode ir junto. */
+            if (!precisa) { campo.value = ''; }
+        }
+
+        nascimento.addEventListener('change', conferir);
+        nascimento.addEventListener('input', conferir);
+
+        /* Voltou do servidor com erro: a data preenchida manda de novo. */
+        conferir();
+
+        campo.addEventListener('input', function (e) {
+            var v = e.target.value.replace(/\D/g, "").substring(0, 11);
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            e.target.value = v;
+        });
     })();
 
     const phoneInput = document.querySelector('input[name="phone"]');

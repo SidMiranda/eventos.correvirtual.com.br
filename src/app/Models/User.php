@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'password',
         'cpf',
+        'guardian_cpf',
         'phone',
         'birth_date',
         'sex',
@@ -55,6 +56,37 @@ class User extends Authenticatable
     public function organizer()
     {
         return $this->belongsTo(Organizer::class);
+    }
+
+    /** Quem tem menos disto no dia do cadastro precisa de responsável. */
+    public const MAIORIDADE = 18;
+
+    /**
+     * A data de nascimento informada é de um menor de idade?
+     *
+     * Conta na data de hoje, não na data do evento: é no cadastro que o dado
+     * do responsável é pedido.
+     */
+    public static function ehMenorDeIdade(?string $nascimento): bool
+    {
+        if (blank($nascimento)) {
+            return false;
+        }
+
+        try {
+            return \Illuminate\Support\Carbon::parse($nascimento)->age < self::MAIORIDADE;
+        } catch (\Throwable) {
+            // Data impossível é problema da regra `date`, não desta — aqui
+            // ela só não pode derrubar o formulário com exceção.
+            return false;
+        }
+    }
+
+    public function menorDeIdade(): bool
+    {
+        return self::ehMenorDeIdade($this->birth_date instanceof \DateTimeInterface
+            ? $this->birth_date->toDateString()
+            : $this->birth_date);
     }
 
     /**

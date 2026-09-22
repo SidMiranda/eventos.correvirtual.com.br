@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
+use App\Rules\Cpf;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -25,6 +27,13 @@ class RegisterController extends Controller
             ]);
         }
 
+        // O CPF do responsável chega mascarado pela mesma razão do outro.
+        if ($request->has('guardian_cpf')) {
+            $request->merge([
+                'guardian_cpf' => preg_replace('/[^0-9]/', '', $request->guardian_cpf)
+            ]);
+        }
+
         // Remove a formatação do celular (parênteses, espaços e traços)
         if ($request->has('phone')) {
             $request->merge([
@@ -39,18 +48,40 @@ class RegisterController extends Controller
             'sex' => 'required|in:male,female,other',
             'phone' => 'required|string|max:20',
             'email' => 'required|string|email|max:255|unique:users',
-            'cpf' => 'required|string|size:11|unique:users',
+            // `size:11` sozinho aceitava "11111111111". O CPF identifica o
+            // atleta na largada e no comprovante de pagamento: número
+            // inventado só aparece como problema no dia da prova.
+            'cpf' => ['required', 'string', 'size:11', new Cpf, 'unique:users'],
+            // Menor de idade não responde por si num contrato — e a inscrição
+            // é um: tem pagamento, termo e risco físico. Exigido só de quem
+            // informa nascimento de menos de 18 anos, conferido no servidor
+            // porque o campo some da tela por JavaScript.
+            'guardian_cpf' => [
+                Rule::requiredIf(fn () => User::ehMenorDeIdade($request->input('birth_date'))),
+                'nullable',
+                'string',
+                'size:11',
+                new Cpf,
+                'different:cpf',
+            ],
             'password' => 'required|string|min:6', // No futuro colocar regras mais fortes
-            // A cidade é opcional (decisão do dono em 2026-09-22: campo
-            // obrigatório novo no meio do funil custa inscrição). Mas quem
-            // digitou alguma coisa e NÃO escolheu da lista não passa: sem o
-            // `required_with`, o texto digitado se perderia em silêncio e a
-            // pessoa acharia que tinha informado a cidade.
-            'cidade' => 'nullable|string|max:120',
-            'city_id' => 'nullable|required_with:cidade|integer|exists:cities,id',
+            // Obrigatória, e obrigatoriamente escolhida da lista (decisão do
+            // dono em 2026-09-22). O que vale é o `city_id`: digitar o nome e
+            // não clicar na sugestão não conta, senão o dado chegaria como
+            // texto solto e "Mogi Guaçu" e "mogi guacu" virariam duas cidades.
+            'cidade' => 'required|string|max:120',
+            'city_id' => 'required|integer|exists:cities,id',
         ], [
-            'city_id.required_with' => 'Escolha a cidade na lista que aparece enquanto você digita.',
+            'cidade.required' => 'Informe a sua cidade.',
+            'city_id.required' => 'Escolha a cidade na lista que aparece enquanto você digita.',
             'city_id.exists' => 'Escolha a cidade na lista que aparece enquanto você digita.',
+            'cpf.size' => 'O CPF precisa ter 11 dígitos.',
+            'guardian_cpf.required' => 'Quem tem menos de 18 anos precisa informar o CPF do responsável.',
+            'guardian_cpf.size' => 'O CPF do responsável precisa ter 11 dígitos.',
+            'guardian_cpf.different' => 'O CPF do responsável não pode ser o mesmo do atleta.',
+        ], [
+            'cpf' => 'CPF',
+            'guardian_cpf' => 'CPF do responsável',
         ]);
 
         // 2. Criação do usuário no banco
@@ -58,10 +89,11 @@ class RegisterController extends Controller
             'name' => $request->name,
             'birth_date' => $request->birth_date,
             'sex' => $request->sex,
-            'city_id' => $request->city_id ?: null,
+            'city_id' => $request->city_id,
             'phone' => $request->phone,
             'email' => $request->email,
             'cpf' => $request->cpf,
+            'guardian_cpf' => $request->guardian_cpf ?: null,
             'password' => Hash::make($request->password),
             'role' => 'athlete', // Já força o papel correto
             'active' => true,

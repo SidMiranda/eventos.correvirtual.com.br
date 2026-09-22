@@ -77,8 +77,27 @@ do IBGE a cada tecla colocaria a inscrição de alguém na dependência de um
 serviço de fora responder a tempo. O import é upsert pelo código do IBGE:
 repetir não duplica nem desfaz vínculo de ninguém.
 
-**O campo é opcional** no cadastro (decisão do dono, 2026-09-22), mas quem
-digita e não escolhe da lista não passa (`required_with`) — senão o texto
-sumiria em silêncio. Quem se cadastrou antes continua sem cidade: não existe
-tela de editar perfil (ver `docs/backlog.md`).
+**O campo é obrigatório** e a cidade tem de ser **escolhida da lista**
+(decisão do dono, 2026-09-22): o que vale é o `city_id`, não o texto digitado
+— digitar o nome e não clicar na sugestão não conta. Quem se cadastrou antes
+continua sem cidade, e continua podendo entrar: a obrigatoriedade é do
+formulário de cadastro, não do login. Não existe tela de editar perfil para
+esses preencherem depois (ver `docs/backlog.md`).
+
+## CPF e responsável do menor de idade (2026-09-22)
+
+O CPF passou a ter os **dígitos verificadores conferidos** (`App\Rules\Cpf`).
+Até aqui a regra era `size:11` e nada mais: `11111111111` entrava. O CPF é o
+que identifica o atleta na largada e no comprovante de pagamento — número
+inventado só aparece como problema no dia da prova, quando não dá mais para
+corrigir.
+
+Quem informa nascimento de **menos de 18 anos** precisa de
+`users.guardian_cpf`, o CPF de um responsável, que passa pela mesma conta e
+não pode ser o do próprio atleta. Menor de idade não responde por si num
+contrato, e a inscrição é um: tem pagamento, termo e risco físico.
+
+O campo aparece e some na tela conforme a data de nascimento, por JavaScript,
+mas **quem decide é o servidor** (`Rule::requiredIf`): esconder no front não é
+validar.
 
