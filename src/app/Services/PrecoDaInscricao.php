@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\AgeCategory;
 use App\Models\Coupon;
-use App\Models\EventKit;
 
 /**
  * Quanto uma inscrição custa: o preço base, o que a categoria etária abate, o
@@ -47,17 +46,6 @@ final class PrecoDaInscricao
         $cupomCentavos = $cupom ? self::descontoEmCentavos($cupom, $bruto - $idade) : 0;
 
         return new self($bruto, $idade, $cupomCentavos, $categoria, $cupom);
-    }
-
-    /**
-     * O caminho antigo: preço do kit, sem categoria.
-     *
-     * Continua existindo porque a fatia 1 de 2026-09-23 não muda o checkout —
-     * ele só passa a ler a grade na fatia 2. Aí isto sai.
-     */
-    public static function para(EventKit $kit, ?Coupon $cupom = null): self
-    {
-        return self::de((float) $kit->price, null, $cupom);
     }
 
     /*

@@ -8,6 +8,7 @@ use App\Models\EventModality;
 use App\Models\Organizer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\PreparaEventoParaVenda;
 use Tests\TestCase;
 
 /**
@@ -21,6 +22,7 @@ use Tests\TestCase;
 class InscricaoFechadaTest extends TestCase
 {
     use RefreshDatabase;
+    use PreparaEventoParaVenda;
 
     private Organizer $organizador;
     private User $atleta;
@@ -45,6 +47,7 @@ class InscricaoFechadaTest extends TestCase
 
         EventModality::factory()->create(['event_id' => $evento->id]);
         EventKit::factory()->create(['event_id' => $evento->id]);
+        $this->prepararParaVenda($evento);
 
         return $evento;
     }

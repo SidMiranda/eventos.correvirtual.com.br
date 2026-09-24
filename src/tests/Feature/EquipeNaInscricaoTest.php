@@ -9,6 +9,7 @@ use App\Models\Organizer;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\PreparaEventoParaVenda;
 use Tests\TestCase;
 
 /**
@@ -25,6 +26,7 @@ use Tests\TestCase;
 class EquipeNaInscricaoTest extends TestCase
 {
     use RefreshDatabase;
+    use PreparaEventoParaVenda;
 
     private Event $evento;
     private EventModality $modalidade;
@@ -46,6 +48,7 @@ class EquipeNaInscricaoTest extends TestCase
 
         $this->modalidade = EventModality::factory()->create(['event_id' => $this->evento->id]);
         $this->kit = EventKit::factory()->create(['event_id' => $this->evento->id, 'price' => 100]);
+        $this->prepararParaVenda($this->evento, comTamanhos: false);
         $this->atleta = User::factory()->create(['role' => 'athlete']);
     }
 

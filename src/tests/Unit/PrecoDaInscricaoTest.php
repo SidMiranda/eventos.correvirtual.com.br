@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use App\Models\Coupon;
-use App\Models\EventKit;
 use App\Services\PrecoDaInscricao;
 use Tests\TestCase;
 
@@ -16,11 +15,6 @@ use Tests\TestCase;
  */
 class PrecoDaInscricaoTest extends TestCase
 {
-    private function kit(float $preco): EventKit
-    {
-        return new EventKit(['price' => $preco]);
-    }
-
     private function percentual(float $pct): Coupon
     {
         return new Coupon(['discount_type' => Coupon::TIPO_PERCENTUAL, 'discount_value' => $pct]);
@@ -33,7 +27,7 @@ class PrecoDaInscricaoTest extends TestCase
 
     public function test_sem_cupom_o_liquido_e_o_proprio_preco(): void
     {
-        $preco = PrecoDaInscricao::para($this->kit(89.90));
+        $preco = PrecoDaInscricao::de(89.90);
 
         $this->assertSame(89.90, $preco->bruto());
         $this->assertSame(0.0, $preco->desconto());
@@ -45,7 +39,7 @@ class PrecoDaInscricaoTest extends TestCase
 
     public function test_dez_por_cento_de_89_90(): void
     {
-        $preco = PrecoDaInscricao::para($this->kit(89.90), $this->percentual(10));
+        $preco = PrecoDaInscricao::de(89.90, null, $this->percentual(10));
 
         $this->assertSame(8.99, $preco->desconto());
         $this->assertSame(80.91, $preco->liquido());
@@ -54,7 +48,7 @@ class PrecoDaInscricaoTest extends TestCase
     public function test_percentual_quebrado_arredonda_meio_para_cima(): void
     {
         // 12,5% de 8990 centavos = 1123,75 → 1124.
-        $preco = PrecoDaInscricao::para($this->kit(89.90), $this->percentual(12.5));
+        $preco = PrecoDaInscricao::de(89.90, null, $this->percentual(12.5));
 
         $this->assertSame(11.24, $preco->desconto());
         $this->assertSame(78.66, $preco->liquido());
@@ -62,7 +56,7 @@ class PrecoDaInscricaoTest extends TestCase
 
     public function test_valor_em_reais(): void
     {
-        $preco = PrecoDaInscricao::para($this->kit(59.90), $this->emReais(25));
+        $preco = PrecoDaInscricao::de(59.90, null, $this->emReais(25));
 
         $this->assertSame(25.0, $preco->desconto());
         $this->assertSame(34.90, $preco->liquido());
@@ -70,7 +64,7 @@ class PrecoDaInscricaoTest extends TestCase
 
     public function test_desconto_maior_que_o_kit_zera_e_nao_fica_negativo(): void
     {
-        $preco = PrecoDaInscricao::para($this->kit(30.00), $this->emReais(50));
+        $preco = PrecoDaInscricao::de(30.00, null, $this->emReais(50));
 
         $this->assertSame(30.0, $preco->desconto());
         $this->assertSame(0.0, $preco->liquido());
@@ -79,7 +73,7 @@ class PrecoDaInscricaoTest extends TestCase
 
     public function test_cem_por_cento_e_gratuita(): void
     {
-        $preco = PrecoDaInscricao::para($this->kit(89.90), $this->percentual(100));
+        $preco = PrecoDaInscricao::de(89.90, null, $this->percentual(100));
 
         $this->assertSame(89.90, $preco->desconto());
         $this->assertSame(0.0, $preco->liquido());
@@ -90,7 +84,7 @@ class PrecoDaInscricaoTest extends TestCase
     {
         // 0,30 com 10%: em float, 0.3 * 0.1 = 0.030000000000000002 e
         // 0.3 - 0.03 = 0.27 só por sorte. Em centavos é 30, 3 e 27.
-        $preco = PrecoDaInscricao::para($this->kit(0.30), $this->percentual(10));
+        $preco = PrecoDaInscricao::de(0.30, null, $this->percentual(10));
 
         $this->assertSame(0.03, $preco->desconto());
         $this->assertSame(0.27, $preco->liquido());
@@ -113,12 +107,12 @@ class PrecoDaInscricaoTest extends TestCase
             'discount_amount' => 8.99,
             'coupon_id' => 7,
             'price' => 80.91,
-        ], PrecoDaInscricao::para($this->kit(89.90), $cupom)->paraInscricao());
+        ], PrecoDaInscricao::de(89.90, null, $cupom)->paraInscricao());
     }
 
     public function test_formatacao_em_reais(): void
     {
-        $preco = PrecoDaInscricao::para($this->kit(1234.5), $this->percentual(10));
+        $preco = PrecoDaInscricao::de(1234.5, null, $this->percentual(10));
 
         $this->assertSame('R$ 1.234,50', $preco->brutoFormatado());
         $this->assertSame('R$ 123,45', $preco->descontoFormatado());
@@ -132,6 +126,6 @@ class PrecoDaInscricaoTest extends TestCase
         $cupom = $this->percentual(12.5);
 
         $this->assertSame(11.24, $cupom->descontoSobre(89.90));
-        $this->assertSame(PrecoDaInscricao::para($this->kit(89.90), $cupom)->desconto(), $cupom->descontoSobre(89.90));
+        $this->assertSame(PrecoDaInscricao::de(89.90, null, $cupom)->desconto(), $cupom->descontoSobre(89.90));
     }
 }

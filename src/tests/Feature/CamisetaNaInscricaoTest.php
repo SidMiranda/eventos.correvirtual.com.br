@@ -9,6 +9,7 @@ use App\Models\Organizer;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\PreparaEventoParaVenda;
 use Tests\TestCase;
 
 /**
@@ -19,12 +20,13 @@ use Tests\TestCase;
  * que oferece, e o tamanho sendo exigido apenas nos kits que têm camiseta —
  * fica para depois.
  *
- * Por isso o campo é **opcional**: existe kit "sem camiseta" à venda, e exigir
- * tamanho de quem não vai receber camiseta travaria a inscrição por nada.
+ * Desde a fatia 2 (ADR 0007) o tamanho vem do KIT: obrigatório quando o kit
+ * oferece tamanhos, ausente quando não oferece (o kit "sem camiseta").
  */
 class CamisetaNaInscricaoTest extends TestCase
 {
     use RefreshDatabase;
+    use PreparaEventoParaVenda;
 
     private Event $evento;
     private EventModality $modalidade;
@@ -46,6 +48,7 @@ class CamisetaNaInscricaoTest extends TestCase
 
         $this->modalidade = EventModality::factory()->create(['event_id' => $this->evento->id]);
         $this->kit = EventKit::factory()->create(['event_id' => $this->evento->id, 'price' => 100]);
+        $this->prepararParaVenda($this->evento, comTamanhos: true);
         $this->atleta = User::factory()->create(['role' => 'athlete']);
     }
 
@@ -76,10 +79,20 @@ class CamisetaNaInscricaoTest extends TestCase
         $this->assertSame('BLM', $this->inscricao()->shirt_size);
     }
 
-    public function test_a_camiseta_e_opcional(): void
+    public function test_kit_com_tamanhos_exige_o_tamanho(): void
     {
-        // Há kit "sem camiseta" à venda hoje.
-        $this->inscrever()->assertSessionHasNoErrors();
+        // Desde a fatia 2 (ADR 0007) o tamanho é obrigatório quando o kit tem.
+        $this->inscrever()->assertSessionHasErrors('camiseta');
+
+        $this->assertDatabaseCount('subscriptions', 0);
+    }
+
+    public function test_kit_sem_tamanhos_nao_pede(): void
+    {
+        $semCamiseta = EventKit::factory()->create(['event_id' => $this->evento->id, 'name' => 'Sem camiseta', 'price' => 60]);
+        $this->prepararParaVenda($this->evento, comTamanhos: true);
+
+        $this->inscrever(['kit_id' => $semCamiseta->id])->assertSessionHasNoErrors();
 
         $this->assertNull($this->inscricao()->shirt_size);
     }

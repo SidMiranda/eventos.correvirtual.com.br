@@ -182,17 +182,16 @@ class Subscription extends Model
     }
 
     /** "G (56 x 73 cm)" — o que aparece na tela e no painel. */
+    public static function rotuloDoTamanho(string $codigo): string
+    {
+        $medida = self::CAMISETAS[$codigo] ?? self::CAMISETAS_BABY_LOOK[$codigo] ?? null;
+
+        return $medida ? "{$codigo} ({$medida})" : $codigo;
+    }
+
     public function camisetaPorExtenso(): ?string
     {
-        if (blank($this->shirt_size)) {
-            return null;
-        }
-
-        $medida = self::CAMISETAS[$this->shirt_size]
-            ?? self::CAMISETAS_BABY_LOOK[$this->shirt_size]
-            ?? null;
-
-        return $medida ? "{$this->shirt_size} ({$medida})" : $this->shirt_size;
+        return blank($this->shirt_size) ? null : self::rotuloDoTamanho($this->shirt_size);
     }
 
     /**

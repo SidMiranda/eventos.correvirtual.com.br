@@ -9,11 +9,13 @@ use App\Models\Organizer;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\PreparaEventoParaVenda;
 use Tests\TestCase;
 
 class SubscribeControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use PreparaEventoParaVenda;
 
     protected function setUp(): void
     {
@@ -58,6 +60,7 @@ class SubscribeControllerTest extends TestCase
 
         $modality = EventModality::factory()->create(['event_id' => $event->id]);
         $kit = EventKit::factory()->create(['event_id' => $event->id]);
+        $this->prepararParaVenda($event);
 
         return [$event, $modality, $kit];
     }
@@ -98,10 +101,13 @@ class SubscribeControllerTest extends TestCase
         ]);
     }
 
-    public function test_subscribe_charges_the_kit_price_not_a_fixed_value(): void
+    public function test_subscribe_charges_the_grid_price_not_the_kit_price(): void
     {
+        // Desde a fatia 2 de 2026-09-24 (ADR 0007) o preço é a célula da grade
+        // no lote vigente. O kit continua com 59,90 na coluna antiga — e ela
+        // não pode ser lida.
         [$event, $modality, $kit] = $this->createEventWithModalityAndKit();
-        $kit->update(['price' => 149.90]);
+        \App\Models\EventPrice::where('kit_id', $kit->id)->update(['price' => 149.90]);
         $user = User::factory()->create();
 
         $this->actingAs($user)->post("/subscribe/event/{$event->id}", [

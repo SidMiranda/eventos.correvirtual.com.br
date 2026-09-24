@@ -76,7 +76,7 @@
            botão levaria a pessoa a um formulário que não vai aceitar nada.
            Esconder aqui é só a metade visível — quem barra de verdade é o
            SubscribeController, porque o endereço pode ser digitado à mão. --}}
-      @if ($event->inscricoesAbertas())
+      @if ($event->aceitaInscricao())
         <a href="/subscribe/event/{{ $event->id }}" class="cta-button">
           Inscreva-se
         </a>
@@ -85,10 +85,21 @@
           <strong>Evento realizado</strong>
           <span>Aconteceu em {{ $event->event_date->format('d/m/Y') }}.</span>
         </div>
-      @else
+      @elseif (! $event->inscricoesAbertas())
         <div class="event-aviso">
           <strong>Inscrições encerradas</strong>
           <span>O prazo terminou em {{ $event->registration_deadline->format('d/m/Y \à\s H:i') }}.</span>
+        </div>
+      @else
+        {{-- Datas abertas, mas nenhum lote vigente (ADR 0007): não é
+             "encerradas" — é "ainda não". Se há lote futuro, diz quando. --}}
+        <div class="event-aviso">
+          <strong>Inscrições ainda não abertas</strong>
+          @if ($proximo = $event->proximoLote())
+            <span>Abrem em {{ $proximo->starts_at->format('d/m/Y \à\s H:i') }}.</span>
+          @else
+            <span>Em breve.</span>
+          @endif
         </div>
       @endif
 
@@ -105,15 +116,35 @@
 
       <div class="info-block">
         <h2>Kits</h2>
-        @if($event->kits && $event->kits->count() > 0)
+        {{-- O preço é o da grade no lote vigente (ADR 0007), não o do kit. Um
+             kit que custa diferente por modalidade aparece como "a partir de".
+             Sem lote vigente, os kits aparecem sem valor. --}}
+        @php
+            $loteDaPagina = $event->loteVigente();
+            $kitsAtivos = $event->kits->where('active', true);
+            $precosDoLote = $loteDaPagina
+                ? $event->prices()->where('lot_id', $loteDaPagina->id)->get()->groupBy('kit_id')
+                : collect();
+            $kitsAVenda = $loteDaPagina ? $kitsAtivos->filter(fn ($k) => $precosDoLote->has($k->id)) : $kitsAtivos;
+        @endphp
+        @if ($kitsAVenda->isNotEmpty())
+          @if ($loteDaPagina)
+            <p style="margin: 0 0 12px; color: #475569; font-size: 14px;">Valores do <strong>{{ $loteDaPagina->name }}</strong>.</p>
+          @else
+            <p style="margin: 0 0 12px; color: #475569; font-size: 14px;">Os valores aparecem quando as inscrições abrirem.</p>
+          @endif
           <div class="kits-list">
-            @foreach($event->kits as $kit)
+            @foreach ($kitsAVenda as $kit)
               <div class="kit-card" style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 16px; background-color: #fafafa;">
                 <h3 style="margin-top: 0; margin-bottom: 8px; color: #333;">{{ $kit->name }}</h3>
                 <p style="margin-top: 0; margin-bottom: 12px; color: #666;">{{ $kit->description }}</p>
-                <p style="font-size: 1.5em; font-weight: bold; margin: 0; color: #111;">
-                  R$ {{ number_format($kit->price, 2, ',', '.') }}
-                </p>
+                @if ($loteDaPagina)
+                  @php $menor = $precosDoLote[$kit->id]->min('price'); $maior = $precosDoLote[$kit->id]->max('price'); @endphp
+                  <p style="font-size: 1.5em; font-weight: bold; margin: 0; color: #111;">
+                    @if ($menor != $maior)<span style="font-size: .6em; font-weight: 400; color: #666;">a partir de</span> @endif
+                    R$ {{ number_format($menor, 2, ',', '.') }}
+                  </p>
+                @endif
               </div>
             @endforeach
           </div>

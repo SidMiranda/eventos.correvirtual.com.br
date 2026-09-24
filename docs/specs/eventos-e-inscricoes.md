@@ -37,7 +37,7 @@ Comportamento atual:
 1. Busca o evento por ID (mesmo problema de escopo do item anterior — **BUG-005**, ainda aberto) e recusa se não estiver com inscrições abertas.
 2. Valida que `modality_id` e `kit_id` vieram no request **e** que existem em `event_modalities`/`event_kits` pertencendo a este `event_id` (`Rule::exists(...)->where('event_id', ...)`) — corrigido em 2026-07-30 (BUG-002). As colunas `subscriptions.modality_id`/`kit_id` agora são `foreignId` de verdade, com `restrictOnDelete()` (não dá pra apagar um kit/modalidade que já tem inscrição). O campo `cupom` é opcional.
 3. Se já existe uma `Subscription` **ativa** (`pending` ou `paid`) do usuário pra esse evento → redireciona pra "minhas inscrições" avisando que já está inscrito. Isso vem antes do cupom, para não gastar uso à toa. Se a existente estiver **cancelada**, ela é reaproveitada no passo 5 (ver "Cancelar inscrição" abaixo).
-4. Se veio cupom, `App\Services\CupomNoCheckout::localizar()` acha e valida o código **pelo evento**; recusa vira erro no campo `cupom`. `App\Services\PrecoDaInscricao` faz a conta em centavos (2026-09-20, ver `docs/specs/cupons-de-desconto.md`).
+4. **Desde 2026-09-24 (ADR 0007)**: lote vigente resolvido (sem lote, fechado); kit precisa estar vinculado à modalidade; preço base vem de `event_prices` (célula vazia = recusa); tamanho exigido só se o kit oferece, e só entre eles; categoria etária pela data de nascimento do cadastro (`App\Services\CategoriaEtaria`). Cupom via `CupomNoCheckout::localizar()`. `PrecoDaInscricao::de()` faz a conta em centavos, em cascata. Ver `docs/specs/precos-lotes-e-categorias.md`.
 5. Numa transação: consome o uso do cupom (`Coupon::registrarUso()`, `UPDATE` condicional) e cria a `Subscription` com `status = pending`, `list_price` (preço do kit), `discount_amount`, `price` (o cobrado) e `coupon_id`. BUG-001 (preço fixo) foi corrigido em 2026-08-02 — `price` é o preço do kit, menos o desconto.
 6. Valor zero (cupom de 100%) → confirma na hora por `ConfirmacaoDeInscricao` (`paid`, `confirmed_at`, e-mail) e não gera Pix. Senão, redireciona pra "minhas inscrições", onde o atleta vê o valor (e o desconto) antes de pagar.
 
@@ -55,7 +55,7 @@ camiseta" à venda — exigir tamanho de quem não vai receber camiseta travaria
 inscrição por nada. Quando o kit passar a declarar se inclui camiseta, a
 exigência vem dele.
 
-Existe ainda `POST /subscribe/event/{event_id}/cupom` (autenticado, `throttle:20,1`) → `SubscribeController::previaDoCupom`: a prévia do formulário, que valida o código para o kit escolhido e devolve os valores em JSON sem criar nada.
+Existe ainda `POST /subscribe/event/{event_id}/cotacao` (autenticado, `throttle:20,1`) → `SubscribeController::cotacao`: o resumo ao vivo — lote, preço da grade, categoria, cupom e total — em JSON, sem criar nada nem gastar uso. Substituiu a prévia do cupom em 2026-09-24.
 
 Não há verificação de `registration_deadline` nem de `max_participants` da modalidade (BUG-005, ainda aberto).
 

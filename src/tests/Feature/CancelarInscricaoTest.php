@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\PreparaEventoParaVenda;
 use Tests\TestCase;
 
 /**
@@ -26,6 +27,7 @@ use Tests\TestCase;
 class CancelarInscricaoTest extends TestCase
 {
     use RefreshDatabase;
+    use PreparaEventoParaVenda;
 
     private Organizer $organizador;
     private User $atleta;
@@ -48,6 +50,7 @@ class CancelarInscricaoTest extends TestCase
         ]);
         $this->modalidade = EventModality::factory()->create(['event_id' => $this->evento->id]);
         $this->kit = EventKit::factory()->create(['event_id' => $this->evento->id, 'price' => 100]);
+        $this->prepararParaVenda($this->evento);
     }
 
     private function inscricao(array $extra = []): Subscription
@@ -139,6 +142,7 @@ class CancelarInscricaoTest extends TestCase
         $this->cancelar($inscricao);
 
         $outroKit = EventKit::factory()->create(['event_id' => $this->evento->id, 'price' => 150]);
+        $this->prepararParaVenda($this->evento);
 
         $this->actingAs($this->atleta)
             ->post("/subscribe/event/{$this->evento->id}", [

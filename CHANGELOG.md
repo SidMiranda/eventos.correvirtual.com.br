@@ -6,6 +6,17 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Preço por modalidade × kit × lote — fatia 2: o fluxo do atleta (2026-09-24)
+- **O checkout passa a ler a grade.** O preço é `event_prices` em (modalidade, kit, lote vigente); `event_kits.price` deixa de ser lido no fluxo. `PrecoDaInscricao::para($kit)` saiu.
+- **O atleta só vê os kits da modalidade que escolheu**, com o preço da grade neste lote. Kit sem célula no lote não aparece; kit fora da modalidade e combinação sem preço são recusados no servidor.
+- **Tamanho da camiseta vem do kit**: aparece só quando o kit oferece — e aí é obrigatório; kit sem camiseta não pergunta. Fecha o item de 2026-09-22.
+- **Lote vigente resolvido na hora**: por data, por quantidade (canceladas não contam) e, em empate, por ordem. Sem lote, a página diz **"Inscrições ainda não abertas"** e quando abre. A inscrição grava o `lot_id`.
+- **Categoria etária pelo cadastro**, sem perguntar; em mais de uma, a de maior desconto em reais. Gravada em `age_category_id` + `age_discount_amount`.
+- **Cupom em cascata** sobre o que sobrou da idade. Desconto de idade de 100% confirma sem Pix.
+- **Resumo ao vivo** (`POST .../cotacao`, substitui a prévia do cupom): lote, preço, categoria, cupom e total. "Minhas inscrições" e a tela do Pix mostram o desconto de idade.
+- **A página do evento mostra o valor do lote vigente** por kit ("a partir de" quando varia por modalidade).
+- Testes de inscrição preparam o evento com `PrecosLegados::migrarEvento()` — o mesmo caminho de produção.
+
 ### Preço por modalidade × kit × lote — fatia 1: estrutura e painel (2026-09-23)
 - **O checkout não muda nesta fatia.** O atleta continua pagando `event_kits.price`. O que entra é a estrutura nova e as telas do organizador — para a grade migrada ser conferida em produção antes de qualquer atleta ser cobrada por ela (ADR 0007, `docs/specs/precos-lotes-e-categorias.md`).
 - **Cinco tabelas novas**: `event_lots` (janelas de vigência com limite opcional), `event_prices` (o valor em `modalidade × kit × lote`), `event_kit_modality` (em quais modalidades cada kit vale), `kit_options` (variação do kit — só tamanho de camiseta por ora) e `age_categories` (desconto por idade). Colunas: `events.age_criteria` e, na inscrição, `lot_id`, `age_category_id` e `age_discount_amount` — o desconto de idade **não** entra em `discount_amount`, que continua sendo só o cupom.

@@ -126,9 +126,9 @@ Route::post('/subscribe/event/{event_id}', [SubscribeController::class, 'subscri
 
 // Prévia do cupom no formulário: valida e devolve os valores em JSON, sem
 // criar nada. O throttle é a defesa barata contra tentar códigos no chute.
-Route::post('/subscribe/event/{event_id}/cupom', [SubscribeController::class, 'previaDoCupom'])
+Route::post('/subscribe/event/{event_id}/cotacao', [SubscribeController::class, 'cotacao'])
     ->middleware(['auth', 'throttle:20,1'])
-    ->name('subscribe.cupom');
+    ->name('subscribe.cotacao');
 
 Route::post('/subscription/cancel', [SubscribeController::class, 'cancel'])
     ->middleware('auth')

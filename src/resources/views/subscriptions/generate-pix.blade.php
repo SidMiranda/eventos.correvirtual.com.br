@@ -23,11 +23,15 @@ Escaneie o QR Code ou copie o código abaixo para pagar sua inscrição
      confere que o desconto chegou no Pix. --}}
 <p class="valor-pix" style="margin: 0 0 16px; font-size: 20px; font-weight: 700; color: #0d1b2a;">
     Valor: R$ {{ number_format($subscription->price, 2, ',', '.') }}
-    @if ($subscription->temDesconto())
+    @if ($subscription->temDescontoDeIdade() || $subscription->temDesconto())
         <span style="display: block; font-size: 14px; font-weight: 400; color: #475569;">
             R$ {{ number_format($subscription->list_price, 2, ',', '.') }}
-            com cupom {{ $subscription->coupon?->code ?? 'aplicado' }}
-            (−R$ {{ number_format($subscription->discount_amount, 2, ',', '.') }})
+            @if ($subscription->temDescontoDeIdade())
+                · {{ $subscription->ageCategory?->name ?? 'categoria' }} (−R$ {{ number_format($subscription->age_discount_amount, 2, ',', '.') }})
+            @endif
+            @if ($subscription->temDesconto())
+                · cupom {{ $subscription->coupon?->code ?? 'aplicado' }} (−R$ {{ number_format($subscription->discount_amount, 2, ',', '.') }})
+            @endif
         </span>
     @endif
 </p>

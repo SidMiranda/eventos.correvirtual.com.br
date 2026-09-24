@@ -134,18 +134,4 @@ class CascataDeDescontosTest extends TestCase
             round($retrato['list_price'] - $retrato['age_discount_amount'] - $retrato['discount_amount'], 2)
         );
     }
-
-    public function test_o_caminho_antigo_pelo_kit_continua_igual(): void
-    {
-        // A fatia 1 não muda o checkout: PrecoDaInscricao::para($kit, $cupom)
-        // tem que dar o mesmo resultado de antes.
-        $kit = new \App\Models\EventKit(['price' => 89.90]);
-
-        $preco = PrecoDaInscricao::para($kit, $this->cupom(Coupon::TIPO_PERCENTUAL, 10));
-
-        $this->assertSame(89.90, $preco->bruto());
-        $this->assertSame(8.99, $preco->desconto());
-        $this->assertSame(80.91, $preco->liquido());
-        $this->assertSame(0.0, $preco->descontoDeIdade());
-    }
 }

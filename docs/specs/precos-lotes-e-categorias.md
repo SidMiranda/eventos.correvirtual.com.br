@@ -1,6 +1,6 @@
 # Preço por modalidade × kit × lote, categoria etária e variação do kit
 
-Status: Em implementação (2026-09-23) — fatia 1 (estrutura + painel) primeiro; fatia 2 (fluxo do atleta) depois
+Status: Implementado — fatia 1 (estrutura + painel) em 2026-09-23, fatia 2 (fluxo do atleta) em 2026-09-24; fatia 3 (menu) pendente
 
 ## Problema
 
@@ -26,33 +26,33 @@ aditivas, e nada do que está no ar pode parar.
 ## Requisitos
 
 **Organizador**
-- [ ] Cadastra **lotes** do evento: nome, início, fim (opcional = aberto),
+- [x] Cadastra **lotes** do evento: nome, início, fim (opcional = aberto),
       quantidade máxima (opcional), ordem.
-- [ ] Cadastra **categorias etárias**: nome, idade mínima e/ou máxima, tipo
+- [x] Cadastra **categorias etárias**: nome, idade mínima e/ou máxima, tipo
       (percentual ou valor) e valor do desconto.
-- [ ] Define o **critério de idade** do evento: ano-calendário (padrão) ou
+- [x] Define o **critério de idade** do evento: ano-calendário (padrão) ou
       data exata.
-- [ ] Vincula cada **kit às modalidades** em que ele pode ser comprado.
-- [ ] Define por kit os **tamanhos de camiseta** disponíveis.
-- [ ] Preenche a **grade de preços**: linhas = modalidade × kit, colunas =
+- [x] Vincula cada **kit às modalidades** em que ele pode ser comprado.
+- [x] Define por kit os **tamanhos de camiseta** disponíveis.
+- [x] Preenche a **grade de preços**: linhas = modalidade × kit, colunas =
       lotes, célula = preço.
-- [ ] Nada disso vaza entre organizadores (mesma regra do resto do painel).
+- [x] Nada disso vaza entre organizadores (mesma regra do resto do painel).
 
 **Atleta** (fatia 2)
-- [ ] Escolhe a modalidade e só vê os kits daquela modalidade.
-- [ ] Se o kit tem tamanhos, escolhe um — e é obrigatório. Se não tem, o campo
+- [x] Escolhe a modalidade e só vê os kits daquela modalidade.
+- [x] Se o kit tem tamanhos, escolhe um — e é obrigatório. Se não tem, o campo
       não aparece.
-- [ ] Vê o preço do lote vigente, o desconto de idade (se cair em categoria) e
+- [x] Vê o preço do lote vigente, o desconto de idade (se cair em categoria) e
       o total, antes de confirmar.
-- [ ] Sem lote vigente, as inscrições estão fechadas.
-- [ ] A inscrição guarda: modalidade, kit, tamanho, lote, preço base, desconto
+- [x] Sem lote vigente, as inscrições estão fechadas.
+- [x] A inscrição guarda: modalidade, kit, tamanho, lote, preço base, desconto
       de idade, desconto de cupom e valor final.
 
 **Compatibilidade**
-- [ ] Evento já cadastrado ganha "Lote 1" aberto, e o preço atual de cada kit
+- [x] Evento já cadastrado ganha "Lote 1" aberto, e o preço atual de cada kit
       vira o preço de cada (modalidade, kit) nesse lote.
-- [ ] Kit existente fica disponível em todas as modalidades do evento.
-- [ ] Inscrição já feita não muda em nada.
+- [x] Kit existente fica disponível em todas as modalidades do evento.
+- [x] Inscrição já feita não muda em nada.
 
 ## Fora de escopo
 
@@ -210,3 +210,11 @@ o preço de cada combinação é exatamente o `event_kits.price` de antes.
   total com os descontos antes de confirmar, e a inscrição grava o retrato.
 - Suíte inteira verde; `CHANGELOG.md`, `docs/backlog.md`,
   `docs/arquitetura.md` e a ADR 0007 atualizados.
+
+## Limitação conhecida
+
+O limite de inscrições do lote não é reservado atomicamente: dois atletas que
+confirmam a última vaga no mesmo segundo entram os dois no lote. O efeito é
+uma inscrição a mais no preço do lote anterior — não uma cobrança errada. Com
+o volume atual não vale um `SELECT ... FOR UPDATE`; está no `docs/backlog.md`.
+

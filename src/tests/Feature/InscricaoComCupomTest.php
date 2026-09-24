@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\MercadoPagoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\PreparaEventoParaVenda;
 use Tests\TestCase;
 
 /**
@@ -27,6 +28,7 @@ use Tests\TestCase;
 class InscricaoComCupomTest extends TestCase
 {
     use RefreshDatabase;
+    use PreparaEventoParaVenda;
 
     private Organizer $organizador;
     private User $atleta;
@@ -49,6 +51,7 @@ class InscricaoComCupomTest extends TestCase
         ]);
         $this->modalidade = EventModality::factory()->create(['event_id' => $this->evento->id]);
         $this->kit = EventKit::factory()->create(['event_id' => $this->evento->id, 'price' => 89.90]);
+        $this->prepararParaVenda($this->evento);
     }
 
     private function cupom(array $extra = []): Coupon
@@ -73,7 +76,7 @@ class InscricaoComCupomTest extends TestCase
     private function previa(array $dados, ?User $como = null)
     {
         return $this->actingAs($como ?? $this->atleta)
-            ->postJson("/subscribe/event/{$this->evento->id}/cupom", $dados);
+            ->postJson("/subscribe/event/{$this->evento->id}/cotacao", ['modality_id' => $this->modalidade->id] + $dados);
     }
 
     /*
@@ -360,9 +363,9 @@ class InscricaoComCupomTest extends TestCase
             ->assertOk()
             ->assertJson([
                 'ok' => true,
-                'codigo' => 'CORRE10',
+                'cupom' => 'CORRE10',
                 'bruto' => 'R$ 89,90',
-                'desconto' => 'R$ 8,99',
+                'desconto_cupom' => 'R$ 8,99',
                 'liquido' => 'R$ 80,91',
                 'gratuita' => false,
             ]);
@@ -422,7 +425,7 @@ class InscricaoComCupomTest extends TestCase
     {
         $this->cupom();
 
-        $this->postJson("/subscribe/event/{$this->evento->id}/cupom", [
+        $this->postJson("/subscribe/event/{$this->evento->id}/cotacao", [
             'kit_id' => $this->kit->id,
             'cupom' => 'CORRE10',
         ])->assertStatus(401);

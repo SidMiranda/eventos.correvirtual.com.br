@@ -48,11 +48,17 @@
                 💰
                 @if ($subscription->gratuita())
                     <span>Gratuita
-                        @if ($subscription->coupon) <small>(cupom {{ $subscription->coupon->code }})</small> @endif
+                        @if ($subscription->coupon) <small>(cupom {{ $subscription->coupon->code }})</small>
+                        @elseif ($subscription->ageCategory) <small>({{ $subscription->ageCategory->name }})</small> @endif
                     </span>
                 @else
                     <span>
                         R$ {{ number_format($subscription->price, 2, ',', '.') }}
+                        @if ($subscription->temDescontoDeIdade())
+                            <small class="registration-list-card__desconto">
+                                {{ $subscription->ageCategory?->name ?? 'categoria' }}: −R$ {{ number_format($subscription->age_discount_amount, 2, ',', '.') }}
+                            </small>
+                        @endif
                         @if ($subscription->temDesconto())
                             <small class="registration-list-card__desconto">
                                 cupom {{ $subscription->coupon?->code ?? 'aplicado' }}: −R$ {{ number_format($subscription->discount_amount, 2, ',', '.') }}
