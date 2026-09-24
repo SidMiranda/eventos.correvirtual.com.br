@@ -83,6 +83,23 @@ sequenceDiagram
 
 Ponto crítico: o valor cobrado (`subscription.price`) está incorreto hoje — ver `backlog.md` (BUG-001) e `specs/pagamentos-pix.md`.
 
+## Preço: modalidade × kit × lote (ADR 0007, 2026-09-23)
+
+O valor de uma inscrição deixa de ser o preço do kit e passa a ser uma célula
+de `event_prices`, indexada por `(modality_id, kit_id, lot_id)`. `event_lots`
+são janelas de vigência (o sistema resolve o lote vigente na hora, sem
+ativação manual); `event_kit_modality` diz em quais modalidades cada kit vale;
+`kit_options` guarda a variação do kit (só `shirt_size` por ora);
+`age_categories` é desconto por idade, calculado pelo critério do evento
+(`events.age_criteria`). Na inscrição, `lot_id`, `age_category_id` e
+`age_discount_amount` completam o retrato financeiro — `discount_amount`
+continua sendo só o cupom. Descontos em cascata: idade sobre o preço base,
+cupom sobre o que sobrou. `event_kits.price` fica na tabela como histórico.
+
+Entrega em fatias: a **fatia 1** (estrutura + painel) não muda o checkout; a
+**fatia 2** faz o fluxo do atleta ler a grade. Spec:
+`docs/specs/precos-lotes-e-categorias.md`.
+
 ## Ambientes
 
 | Ambiente | Como sobe | Banco |

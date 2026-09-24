@@ -19,6 +19,7 @@ class Event extends Model
         'location',
         'event_date',
         'registration_deadline',
+        'age_criteria',
         'banner_url',
         'banner_ratio',
         'accent_color',
@@ -48,6 +49,103 @@ class Event extends Model
 
     public function subscriptions() {
         return $this->hasMany(Subscription::class);
+    }
+
+    public function lots()
+    {
+        return $this->hasMany(EventLot::class)->orderBy('position')->orderBy('starts_at');
+    }
+
+    public function prices()
+    {
+        return $this->hasMany(EventPrice::class);
+    }
+
+    public function ageCategories()
+    {
+        return $this->hasMany(AgeCategory::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Idade (ADR 0007)
+    |--------------------------------------------------------------------------
+    */
+
+    /** Ano do evento − ano de nascimento. Quem faz 60 em dezembro conta 60 em janeiro. */
+    public const CRITERIO_ANO_CALENDARIO = 'calendar_year';
+
+    /** Anos completos na data do evento. */
+    public const CRITERIO_DATA_EXATA = 'exact_date';
+
+    public const CRITERIOS = [self::CRITERIO_ANO_CALENDARIO, self::CRITERIO_DATA_EXATA];
+
+    public function idadeDe(\DateTimeInterface|string|null $nascimento): ?int
+    {
+        if (blank($nascimento) || $this->event_date === null) {
+            return null;
+        }
+
+        $nasc = $nascimento instanceof \DateTimeInterface
+            ? \Illuminate\Support\Carbon::instance($nascimento)
+            : \Illuminate\Support\Carbon::parse($nascimento);
+
+        if ($this->age_criteria === self::CRITERIO_DATA_EXATA) {
+            return $nasc->isAfter($this->event_date) ? 0 : (int) $nasc->diffInYears($this->event_date);
+        }
+
+        return max(0, $this->event_date->year - $nasc->year);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lote
+    |--------------------------------------------------------------------------
+    | Resolvido pelo sistema, sem ativação manual. Guardado por instância:
+    | a mesma página pergunta mais de uma vez e a resposta não muda no meio
+    | de uma requisição.
+    */
+
+    private ?EventLot $loteVigenteCache = null;
+    private bool $loteVigenteResolvido = false;
+
+    /** O lote que vende agora: na janela, com vaga, de menor posição. */
+    public function loteVigente(): ?EventLot
+    {
+        if (! $this->loteVigenteResolvido) {
+            $this->loteVigenteCache = $this->lots()
+                ->where('active', true)
+                ->where('starts_at', '<=', now())
+                ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>', now()))
+                ->get()
+                ->first(fn (EventLot $lote) => ! $lote->esgotado());
+
+            $this->loteVigenteResolvido = true;
+        }
+
+        return $this->loteVigenteCache;
+    }
+
+    /** O próximo a abrir — para a página dizer "abrem em…" em vez de "encerradas". */
+    public function proximoLote(): ?EventLot
+    {
+        return $this->lots()
+            ->where('active', true)
+            ->where('starts_at', '>', now())
+            ->orderBy('starts_at')
+            ->first();
+    }
+
+    /**
+     * Vende agora? Datas do evento E lote vigente.
+     *
+     * `inscricoesAbertas()` continua sendo só a regra de datas — é o que as
+     * listas do painel usam, e elas não podem pagar uma consulta de lote por
+     * linha. Quem vai cobrar alguém pergunta aqui.
+     */
+    public function aceitaInscricao(): bool
+    {
+        return $this->inscricoesAbertas() && $this->loteVigente() !== null;
     }
 
     /*

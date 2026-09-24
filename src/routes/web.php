@@ -17,6 +17,9 @@ use App\Http\Controllers\Admin\AthleteController as AdminAthleteController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Admin\AboutController as AdminAboutController;
+use App\Http\Controllers\Admin\AgeCategoryController as AdminAgeCategoryController;
+use App\Http\Controllers\Admin\EventLotController as AdminLotController;
+use App\Http\Controllers\Admin\EventPriceController as AdminPriceController;
 use App\Http\Controllers\Admin\PhotoController as AdminPhotoController;
 use App\Http\Controllers\Admin\SponsorController as AdminSponsorController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
@@ -163,6 +166,19 @@ Route::middleware(['auth', 'organizer.admin'])
         Route::resource('eventos.kits', AdminKitController::class)
             ->except(['show'])
             ->parameters(['eventos' => 'evento', 'kits' => 'id']);
+
+        // Lotes e categorias etárias também são do evento (ADR 0007). A grade
+        // de preços é uma tela só por evento: GET mostra, PUT salva tudo.
+        Route::resource('eventos.lotes', AdminLotController::class)
+            ->except(['show'])
+            ->parameters(['eventos' => 'evento', 'lotes' => 'id']);
+
+        Route::resource('eventos.categorias', AdminAgeCategoryController::class)
+            ->except(['show'])
+            ->parameters(['eventos' => 'evento', 'categorias' => 'id']);
+
+        Route::get('eventos/{evento}/precos', [AdminPriceController::class, 'edit'])->name('eventos.precos.edit');
+        Route::put('eventos/{evento}/precos', [AdminPriceController::class, 'update'])->name('eventos.precos.update');
 
         // Atalhos do menu lateral: listam modalidades e kits de todos os eventos
         // do organizador, e o botão de cadastrar pergunta em qual evento antes

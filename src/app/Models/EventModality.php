@@ -26,4 +26,10 @@ class EventModality extends Model
     {
         return $this->hasMany(Subscription::class, 'modality_id');
     }
+
+    /** Os kits que podem ser comprados nesta modalidade (ADR 0007). */
+    public function kits()
+    {
+        return $this->belongsToMany(EventKit::class, 'event_kit_modality', 'modality_id', 'kit_id');
+    }
 }

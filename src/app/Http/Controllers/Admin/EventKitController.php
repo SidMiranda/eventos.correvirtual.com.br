@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Event;
 use App\Models\EventKit;
+use App\Models\KitOption;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Kits de um evento — o que o atleta recebe e o que ele paga.
@@ -36,11 +39,12 @@ class EventKitController extends AdminController
     {
         $event = $this->eventoAbertoDoOrganizador($eventoId);
 
-        $event->kits()->create($this->validar($request));
+        $kit = $event->kits()->create($this->soColunasDoKit($this->validar($request, $event)));
+        $this->sincronizarVinculos($kit, $request);
 
         return redirect()
             ->route('admin.eventos.kits.index', $event->id)
-            ->with('sucesso', 'Kit criado.');
+            ->with('sucesso', 'Kit criado. Preencha o preço dele na grade de preços.');
     }
 
     public function edit(int $eventoId, int $id)
@@ -56,7 +60,8 @@ class EventKitController extends AdminController
         $event = $this->eventoAbertoDoOrganizador($eventoId);
         $kit = $this->kit($event, $id);
 
-        $kit->update($this->validar($request));
+        $kit->update($this->soColunasDoKit($this->validar($request, $event)));
+        $this->sincronizarVinculos($kit, $request);
 
         return redirect()
             ->route('admin.eventos.kits.index', $event->id)
@@ -83,14 +88,53 @@ class EventKitController extends AdminController
 
     private function kit(Event $event, int $id): EventKit
     {
-        return $event->kits()->where('id', $id)->firstOrFail();
+        return $event->kits()->with(['modalities', 'options'])->where('id', $id)->firstOrFail();
     }
 
-    private function validar(Request $request): array
+    private function soColunasDoKit(array $dados): array
+    {
+        unset($dados['modalidades'], $dados['tamanhos']);
+
+        return $dados;
+    }
+
+    /**
+     * Modalidades em que o kit vale e tamanhos de camiseta que oferece.
+     *
+     * `sync` nas modalidades. Nos tamanhos, apaga o que saiu e cria o que
+     * entrou, na ordem da tabela de medidas — sem recriar o que já estava.
+     */
+    private function sincronizarVinculos(EventKit $kit, Request $request): void
+    {
+        $kit->modalities()->sync(array_map('intval', (array) $request->input('modalidades', [])));
+
+        $tamanhos = array_values(array_intersect(
+            Subscription::tamanhosDeCamiseta(),
+            (array) $request->input('tamanhos', [])
+        ));
+
+        $kit->options()->where('attribute', KitOption::TAMANHO)->whereNotIn('value', $tamanhos)->delete();
+
+        foreach ($tamanhos as $posicao => $tamanho) {
+            $kit->options()->updateOrCreate(
+                ['attribute' => KitOption::TAMANHO, 'value' => $tamanho],
+                ['position' => $posicao]
+            );
+        }
+    }
+
+    private function validar(Request $request, Event $event): array
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            // Kit sem modalidade não aparece para ninguém. Só é exigido quando
+            // o evento já tem modalidade — no primeiro kit de um evento novo
+            // ainda não há o que marcar.
+            'modalidades' => [$event->modalities()->exists() ? 'required' : 'nullable', 'array'],
+            'modalidades.*' => ['integer', Rule::exists('event_modalities', 'id')->where('event_id', $event->id)],
+            'tamanhos' => ['nullable', 'array'],
+            'tamanhos.*' => [Rule::in(Subscription::tamanhosDeCamiseta())],
             // min:0.01 e não min:0 — o Mercado Pago recusa cobrança de R$ 0,00,
             // e uma inscrição gratuita não deveria passar pelo fluxo de Pix.
             'price' => ['required', 'numeric', 'min:0.01', 'max:99999.99'],
@@ -99,6 +143,9 @@ class EventKitController extends AdminController
         ], [
             'price.min' => 'O preço precisa ser de pelo menos R$ 0,01 — o Pix não aceita cobrança zerada.',
             'stock.min' => 'O estoque não pode ser negativo. Deixe em branco para não controlar estoque.',
+            'modalidades.required' => 'Marque ao menos uma modalidade em que este kit pode ser comprado.',
+            'modalidades.*.exists' => 'Uma das modalidades marcadas não é deste evento.',
+            'tamanhos.*.in' => 'Um dos tamanhos marcados não está na tabela de medidas.',
         ]) + ['active' => $request->boolean('active')];
     }
 }

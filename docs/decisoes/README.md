@@ -34,3 +34,4 @@ O que essa decisão implica — inclusive trade-offs aceitos de olhos abertos.
 | [0004](0004-deploy-vps-docker-git-flow.md) | Deploy em VPS via Docker + git flow |
 | [0005](0005-banco-producao-hostgator-mysql.md) | Banco de produção em MySQL gerenciado na Hostgator |
 | [0006](0006-painel-admin-neste-projeto.md) | Painel administrativo fica neste projeto, não no Cubo |
+| [0007](0007-preco-por-modalidade-kit-e-lote.md) | Preço por modalidade × kit × lote, com desconto por idade em cascata |

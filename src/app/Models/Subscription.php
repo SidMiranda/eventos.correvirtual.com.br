@@ -19,6 +19,9 @@ class Subscription extends Model
         'list_price',
         'discount_amount',
         'coupon_id',
+        'lot_id',
+        'age_category_id',
+        'age_discount_amount',
         'price',
         'bib_number',
         'status',
@@ -31,6 +34,7 @@ class Subscription extends Model
         'cancelled_at' => 'datetime',
         'list_price' => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'age_discount_amount' => 'decimal:2',
         'price' => 'decimal:2',
     ];
 
@@ -82,6 +86,22 @@ class Subscription extends Model
     public function coupon()
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    /** O lote em que a inscrição foi feita. Nulo nas anteriores a 2026-10. */
+    public function lot()
+    {
+        return $this->belongsTo(EventLot::class, 'lot_id');
+    }
+
+    public function ageCategory()
+    {
+        return $this->belongsTo(AgeCategory::class, 'age_category_id');
+    }
+
+    public function temDescontoDeIdade(): bool
+    {
+        return (float) $this->age_discount_amount > 0;
     }
 
     /*

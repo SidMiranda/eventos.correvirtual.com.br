@@ -106,9 +106,13 @@ class PrecoDaInscricaoTest extends TestCase
 
         $this->assertSame([
             'list_price' => 89.90,
+            // Sem categoria etária pelo caminho antigo: colunas zeradas, mas
+            // presentes — é o retrato completo (ADR 0007).
+            'age_category_id' => null,
+            'age_discount_amount' => 0.0,
             'discount_amount' => 8.99,
-            'price' => 80.91,
             'coupon_id' => 7,
+            'price' => 80.91,
         ], PrecoDaInscricao::para($this->kit(89.90), $cupom)->paraInscricao());
     }
 

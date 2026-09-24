@@ -181,6 +181,31 @@
     @enderror
 </div>
 
+<hr class="my-4">
+<h6 class="text-muted mb-3" style="letter-spacing:.06em; text-transform:uppercase; font-size:12px;">Categorias etárias</h6>
+
+<div class="form-group">
+    <label class="small mb-1 d-block">Como contar a idade do atleta</label>
+    @php $criterio = old('age_criteria', $event?->age_criteria ?? \App\Models\Event::CRITERIO_ANO_CALENDARIO); @endphp
+    <div class="custom-control custom-radio">
+        <input class="custom-control-input" type="radio" id="criterio_ano" name="age_criteria"
+               value="{{ \App\Models\Event::CRITERIO_ANO_CALENDARIO }}" @checked($criterio === \App\Models\Event::CRITERIO_ANO_CALENDARIO)>
+        <label class="custom-control-label" for="criterio_ano">
+            <strong>Ano-calendário</strong> — ano do evento menos ano de nascimento. Quem faz 60 em dezembro já conta 60 em janeiro (critério das federações).
+        </label>
+    </div>
+    <div class="custom-control custom-radio mt-2">
+        <input class="custom-control-input" type="radio" id="criterio_data" name="age_criteria"
+               value="{{ \App\Models\Event::CRITERIO_DATA_EXATA }}" @checked($criterio === \App\Models\Event::CRITERIO_DATA_EXATA)>
+        <label class="custom-control-label" for="criterio_data">
+            <strong>Data exata</strong> — anos completos no dia da prova.
+        </label>
+    </div>
+    <small class="form-text text-muted">
+        Vale para as categorias etárias com desconto (aba "Categorias"). A data de nascimento vem do cadastro do atleta.
+    </small>
+</div>
+
 <div class="form-group">
     <div class="custom-control custom-switch">
         <input type="hidden" name="active" value="0">

@@ -167,6 +167,9 @@ class EventController extends AdminController
             // Só hexadecimal de 6 dígitos: o valor vai direto para o style de
             // um elemento, então tudo que não for cor precisa ser barrado aqui.
             'accent_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            // Nullable com padrão: formulário antigo (e teste antigo) que não
+            // manda o campo continua valendo, com ano-calendário.
+            'age_criteria' => ['nullable', \Illuminate\Validation\Rule::in(Event::CRITERIOS)],
             'active' => ['boolean'],
         ], [
             'accent_color.regex' => 'A cor precisa estar no formato #RRGGBB.',
@@ -180,7 +183,10 @@ class EventController extends AdminController
         // Os arquivos não são colunas do evento — vão para o R2 em guardarImagens().
         unset($dados['banner'], $dados['card']);
 
-        return $dados + ['active' => $request->boolean('active')];
+        return $dados + [
+            'active' => $request->boolean('active'),
+            'age_criteria' => $request->input('age_criteria') ?: Event::CRITERIO_ANO_CALENDARIO,
+        ];
     }
 
     /**

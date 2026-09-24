@@ -23,4 +23,24 @@
             <span class="badge badge-secondary-soft text-secondary ml-1">{{ $event->kits()->count() }}</span>
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('admin.eventos.lotes.*') ? 'active' : '' }}"
+           href="{{ route('admin.eventos.lotes.index', $event->id) }}">
+            Lotes
+            <span class="badge badge-secondary-soft text-secondary ml-1">{{ $event->lots()->count() }}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('admin.eventos.precos.*') ? 'active' : '' }}"
+           href="{{ route('admin.eventos.precos.edit', $event->id) }}">
+            Preços
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('admin.eventos.categorias.*') ? 'active' : '' }}"
+           href="{{ route('admin.eventos.categorias.index', $event->id) }}">
+            Categorias
+            <span class="badge badge-secondary-soft text-secondary ml-1">{{ $event->ageCategories()->count() }}</span>
+        </a>
+    </li>
 </ul>

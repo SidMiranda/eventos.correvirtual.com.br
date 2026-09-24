@@ -51,6 +51,67 @@
     </div>
 </div>
 
+<hr class="my-4">
+<h6 class="text-muted mb-3" style="letter-spacing:.06em; text-transform:uppercase; font-size:12px;">Em quais modalidades este kit vale</h6>
+
+@php
+    $modalidadesDoEvento = $event->modalities()->orderBy('distance_km')->orderBy('name')->get();
+    $marcadas = collect(old('modalidades', $kit?->modalities?->pluck('id')->all() ?? []))->map(fn ($v) => (int) $v);
+@endphp
+
+@if ($modalidadesDoEvento->isEmpty())
+    <p class="small text-muted">
+        Este evento ainda não tem modalidades. Cadastre-as na aba "Modalidades" e volte aqui para marcar
+        em quais o kit pode ser comprado — sem isso o kit não aparece para o atleta.
+    </p>
+@else
+    <div class="form-group">
+        @foreach ($modalidadesDoEvento as $modalidade)
+            <div class="custom-control custom-checkbox">
+                <input class="custom-control-input @error('modalidades') is-invalid @enderror" type="checkbox"
+                       id="modalidade_{{ $modalidade->id }}" name="modalidades[]" value="{{ $modalidade->id }}"
+                       @checked($marcadas->contains($modalidade->id))>
+                <label class="custom-control-label" for="modalidade_{{ $modalidade->id }}">{{ $modalidade->name }}</label>
+            </div>
+        @endforeach
+        @error('modalidades')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @else
+            <small class="form-text text-muted">O atleta só vê este kit nas modalidades marcadas — é o que impede escolher o 5K e levar o kit do 10K.</small>
+        @enderror
+    </div>
+@endif
+
+<hr class="my-4">
+<h6 class="text-muted mb-3" style="letter-spacing:.06em; text-transform:uppercase; font-size:12px;">Tamanhos de camiseta</h6>
+
+@php $tamanhosMarcados = collect(old('tamanhos', $kit?->tamanhos() ?? [])); @endphp
+
+<div class="form-group">
+    <div class="row">
+        @foreach (['Camiseta' => \App\Models\Subscription::CAMISETAS, 'Baby look' => \App\Models\Subscription::CAMISETAS_BABY_LOOK] as $grupo => $tabela)
+            <div class="col-md-6">
+                <div class="small text-muted mb-2">{{ $grupo }}</div>
+                @foreach ($tabela as $codigo => $medida)
+                    <div class="custom-control custom-checkbox">
+                        <input class="custom-control-input" type="checkbox" id="tam_{{ $codigo }}" name="tamanhos[]" value="{{ $codigo }}"
+                               @checked($tamanhosMarcados->contains($codigo))>
+                        <label class="custom-control-label" for="tam_{{ $codigo }}">{{ $codigo }} <span class="text-muted">— {{ $medida }}</span></label>
+                    </div>
+                @endforeach
+            </div>
+        @endforeach
+    </div>
+    @error('tamanhos.*')
+        <div class="invalid-feedback d-block">{{ $message }}</div>
+    @else
+        <small class="form-text text-muted">
+            Marque os tamanhos que este kit oferece. <strong>Kit sem camiseta: deixe tudo desmarcado</strong> — o atleta não é
+            perguntado. Com tamanhos marcados, escolher um passa a ser obrigatório na inscrição.
+        </small>
+    @enderror
+</div>
+
 <div class="form-group">
     <div class="custom-control custom-switch">
         <input type="hidden" name="active" value="0">

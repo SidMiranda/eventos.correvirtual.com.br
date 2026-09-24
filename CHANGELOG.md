@@ -6,6 +6,14 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Preço por modalidade × kit × lote — fatia 1: estrutura e painel (2026-09-23)
+- **O checkout não muda nesta fatia.** O atleta continua pagando `event_kits.price`. O que entra é a estrutura nova e as telas do organizador — para a grade migrada ser conferida em produção antes de qualquer atleta ser cobrada por ela (ADR 0007, `docs/specs/precos-lotes-e-categorias.md`).
+- **Cinco tabelas novas**: `event_lots` (janelas de vigência com limite opcional), `event_prices` (o valor em `modalidade × kit × lote`), `event_kit_modality` (em quais modalidades cada kit vale), `kit_options` (variação do kit — só tamanho de camiseta por ora) e `age_categories` (desconto por idade). Colunas: `events.age_criteria` e, na inscrição, `lot_id`, `age_category_id` e `age_discount_amount` — o desconto de idade **não** entra em `discount_amount`, que continua sendo só o cupom.
+- **Migração de dados** (`App\Support\PrecosLegados`, testada): cada evento ganhou "Lote 1" aberto, cada kit ficou disponível em todas as modalidades e o preço de cada kit foi copiado para cada célula da grade. Kits ganharam os 10 tamanhos, **exceto os de nome "sem camiseta"** — a única heurística, para o kit sem camiseta não passar a exigir tamanho. `php artisan eventos:migrar-precos` repete o processo para o que ficou faltando, sem duplicar.
+- **Painel**: abas novas no evento — **Lotes**, **Preços** (a grade: linhas = modalidade × kit vinculado, colunas = lotes; célula vazia = combinação não vendável) e **Categorias**. O formulário do kit ganhou as caixas de **modalidades** e de **tamanhos**; o do evento, o **critério de idade** (ano-calendário ou data exata).
+- **Cascata de descontos** já na conta (`PrecoDaInscricao::de()`): a idade abate o preço base, o cupom abate o que sobrou. Decisão do dono entre quatro opções. O caminho antigo `::para($kit)` continua e dá o mesmo resultado de antes.
+- Teste do `retrato` da inscrição atualizado: passou de 4 para 6 colunas.
+
 ### Tamanho da camiseta na inscrição (2026-09-22)
 - **Novo campo "Tamanho da camiseta"** logo abaixo do kit, com a tabela do fornecedor: seis tamanhos de camiseta (P a EXG) e quatro de baby look (BLP a BLGG), cada um mostrando a medida — "GG — 59 x 76 cm". Agrupados em dois `optgroup` para o atleta não confundir as duas réguas.
 - **Uma coluna só (`subscriptions.shirt_size`)**, como combinado: a tabela de medidas é a mesma para todos os eventos hoje, e o fluxo certo — cada evento declarando o que oferece — fica para depois.
@@ -25,7 +33,7 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 - 12 testes novos. Suíte: **405 testes, 1285 asserções**.
 
 ### Acesso ao painel para mais uma administradora, e o placeholder da cidade (2026-09-22)
-- **Isbel Domingos passa a administrar** o organizador Corre Virtual — de atleta para `organizer_admin`, ficando três administradores. Feito por migration porque o pedido veio sem o e-mail dela e `admin:criar` precisa do e-mail; a busca é pelo nome, insensível a acento e caixa. **Trava deliberada: só promove se houver exatamente uma pessoa com esse nome** — administrador enxerga CPF, e-mail e telefone de todos os inscritos, e promover a pessoa errada é pior que não promover. Com 0 ou 2 resultados a migration não faz nada e diz isso no log do deploy.
+- **Migration para promover "Isbel Domingos" a administradora — que não encontrou ninguém.** O pedido veio sem e-mail e a busca foi pelo nome; a trava (só promove com exatamente uma pessoa com esse nome) fez o que devia: o cadastro dela é **"Isabel"** Domingos, com A, e a migration não promoveu ninguém (visto em 2026-09-23). A promoção fica para `admin:criar isabel.dsmococa@gmail.com --organizador=1`, pelo dono.
 - **Placeholder do campo cidade** virou só "Cidade". O anterior explicava o funcionamento ("digite 3 letras e escolha na lista") dentro do campo, o que ficava comprido e feio no meio do formulário.
 
 ### Cidade no cadastro do atleta e equipe na inscrição (2026-09-22)
