@@ -1,6 +1,6 @@
 # Preço por modalidade × kit × lote, categoria etária e variação do kit
 
-Status: Implementado — fatia 1 (estrutura + painel) em 2026-09-23, fatia 2 (fluxo do atleta) em 2026-09-24; fatia 3 (menu) pendente
+Status: Implementado — fatia 1 (estrutura + painel) em 2026-09-23, fatia 2 (fluxo do atleta) e fatia 3 (menu) em 2026-09-24
 
 ## Problema
 

@@ -6,6 +6,11 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Menu do painel agrupado — fatia 3 (2026-09-24)
+- **"Eventos" virou um grupo** no menu lateral (accordion do template): Eventos, Modalidades, Kits, **Lotes** e **Categorias**. Abre sozinho em qualquer página do grupo. O menu estava crescendo demais, como o organizador apontou.
+- **Lotes e Categorias ganharam páginas gerais** (`/admin/lotes`, `/admin/categorias`), atravessando todos os eventos do organizador, com o mesmo seletor "Cadastrar em…" das modalidades e kits.
+- **Preços e o critério de idade não entraram no menu** de propósito: são por evento e vivem nas abas dele — um item de menu que precisa perguntar "qual evento?" antes de abrir é uma tela a mais sem ganho.
+
 ### Preço por modalidade × kit × lote — fatia 2: o fluxo do atleta (2026-09-24)
 - **O checkout passa a ler a grade.** O preço é `event_prices` em (modalidade, kit, lote vigente); `event_kits.price` deixa de ser lido no fluxo. `PrecoDaInscricao::para($kit)` saiu.
 - **O atleta só vê os kits da modalidade que escolheu**, com o preço da grade neste lote. Kit sem célula no lote não aparece; kit fora da modalidade e combinação sem preço são recusados no servidor.

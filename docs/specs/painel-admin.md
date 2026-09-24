@@ -150,6 +150,8 @@ resource /admin/eventos/{evento}/lotes       lotes (janelas de preco)
 resource /admin/eventos/{evento}/categorias  categorias etarias (desconto por idade)
 GET      /admin/eventos/{evento}/precos      a grade modalidade x kit x lote
 PUT      /admin/eventos/{evento}/precos      salva a grade inteira
+GET      /admin/lotes                 lotes de todos os eventos (menu lateral)
+GET      /admin/categorias            categorias etarias de todos os eventos (menu lateral)
 GET      /admin/inscricoes            lista de inscricoes, com filtros
 GET      /admin/inscricoes/pdf        relatorio do evento (abre em aba nova)
 GET      /admin/atletas               atletas que se inscreveram nos meus eventos

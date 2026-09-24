@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\AgeCategory;
 use App\Models\Event;
 use App\Models\EventKit;
+use App\Models\EventLot;
 use App\Models\EventModality;
 use Illuminate\Http\Request;
 
@@ -50,6 +52,38 @@ class CatalogoController extends AdminController
         ]);
     }
 
+    public function lotes()
+    {
+        $lots = EventLot::whereHas('event', $this->doOrganizador())
+            ->with('event')
+            ->join('events', 'events.id', '=', 'event_lots.event_id')
+            ->orderByDesc('events.event_date')
+            ->orderBy('event_lots.position')
+            ->select('event_lots.*')
+            ->paginate(30);
+
+        return view('admin.lots.geral', [
+            'lots' => $lots,
+            'eventos' => $this->eventosParaEscolha(),
+        ]);
+    }
+
+    public function categorias()
+    {
+        $categories = AgeCategory::whereHas('event', $this->doOrganizador())
+            ->with('event')
+            ->join('events', 'events.id', '=', 'age_categories.event_id')
+            ->orderByDesc('events.event_date')
+            ->orderBy('age_categories.min_age')
+            ->select('age_categories.*')
+            ->paginate(30);
+
+        return view('admin.age_categories.geral', [
+            'categories' => $categories,
+            'eventos' => $this->eventosParaEscolha(),
+        ]);
+    }
+
     /**
      * Recebe o evento escolhido no seletor e manda para o formulário aninhado.
      *
@@ -69,16 +103,21 @@ class CatalogoController extends AdminController
         // Evento já realizado é recusado aqui também, não só escondido do
         // seletor: o valor vem de um <select>, e trocar isso no navegador não
         // pode abrir uma porta que a tela fechou.
+        // O tipo já vem restrito pelo whereIn da rota; o mapa só traduz.
+        [$voltar, $criar] = [
+            'modalidades' => ['admin.modalidades.geral', 'admin.eventos.modalidades.create'],
+            'kits'        => ['admin.kits.geral', 'admin.eventos.kits.create'],
+            'lotes'       => ['admin.lotes.geral', 'admin.eventos.lotes.create'],
+            'categorias'  => ['admin.categorias.geral', 'admin.eventos.categorias.create'],
+        ][$tipo];
+
         if (!$evento || $evento->jaAconteceu()) {
             return redirect()
-                ->route($tipo === 'kits' ? 'admin.kits.geral' : 'admin.modalidades.geral')
+                ->route($voltar)
                 ->withErrors(['evento' => 'Escolha um evento seu que ainda não aconteceu.']);
         }
 
-        return redirect()->route(
-            $tipo === 'kits' ? 'admin.eventos.kits.create' : 'admin.eventos.modalidades.create',
-            $eventoId
-        );
+        return redirect()->route($criar, $eventoId);
     }
 
     private function doOrganizador(): callable

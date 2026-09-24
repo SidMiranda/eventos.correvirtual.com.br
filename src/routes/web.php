@@ -185,8 +185,10 @@ Route::middleware(['auth', 'organizer.admin'])
         // de cair no formulário aninhado.
         Route::get('modalidades', [AdminCatalogoController::class, 'modalidades'])->name('modalidades.geral');
         Route::get('kits', [AdminCatalogoController::class, 'kits'])->name('kits.geral');
+        Route::get('lotes', [AdminCatalogoController::class, 'lotes'])->name('lotes.geral');
+        Route::get('categorias', [AdminCatalogoController::class, 'categorias'])->name('categorias.geral');
         Route::get('catalogo/{tipo}/novo', [AdminCatalogoController::class, 'novo'])
-            ->whereIn('tipo', ['modalidades', 'kits'])
+            ->whereIn('tipo', ['modalidades', 'kits', 'lotes', 'categorias'])
             ->name('catalogo.novo');
 
         // Inscrições: a lista com filtros e o relatório em PDF. O PDF vem

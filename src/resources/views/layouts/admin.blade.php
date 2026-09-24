@@ -289,23 +289,36 @@
                             Atletas
                         </a>
 
-                        <a class="nav-link nav-icone-eventos {{ request()->routeIs('admin.eventos.*') ? 'active' : '' }}"
-                           href="{{ route('admin.eventos.index') }}">
+                        @php
+                            // Tudo que é do evento num grupo só (pedido do organizador,
+                            // 2026-09-23): o menu estava crescendo demais. Preços e o
+                            // critério de idade são por evento e vivem nas abas dele.
+                            $grupoEventos = request()->routeIs(
+                                'admin.eventos.*', 'admin.modalidades.geral', 'admin.kits.geral',
+                                'admin.lotes.geral', 'admin.categorias.geral', 'admin.catalogo.*'
+                            );
+                        @endphp
+                        <a class="nav-link nav-icone-eventos {{ $grupoEventos ? '' : 'collapsed' }}"
+                           href="javascript:void(0);" data-toggle="collapse" data-target="#collapseEventos"
+                           aria-expanded="{{ $grupoEventos ? 'true' : 'false' }}" aria-controls="collapseEventos">
                             <div class="nav-link-icon"><i data-feather="calendar"></i></div>
                             Eventos
+                            <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                         </a>
-
-                        <a class="nav-link nav-icone-modalidades {{ request()->routeIs('admin.modalidades.geral') ? 'active' : '' }}"
-                           href="{{ route('admin.modalidades.geral') }}">
-                            <div class="nav-link-icon"><i data-feather="flag"></i></div>
-                            Modalidades
-                        </a>
-
-                        <a class="nav-link nav-icone-kits {{ request()->routeIs('admin.kits.geral') ? 'active' : '' }}"
-                           href="{{ route('admin.kits.geral') }}">
-                            <div class="nav-link-icon"><i data-feather="package"></i></div>
-                            Kits
-                        </a>
+                        <div class="collapse {{ $grupoEventos ? 'show' : '' }}" id="collapseEventos" data-parent="#accordionSidenav">
+                            <nav class="sidenav-menu-nested nav">
+                                <a class="nav-link {{ request()->routeIs('admin.eventos.*') ? 'active' : '' }}"
+                                   href="{{ route('admin.eventos.index') }}">Eventos</a>
+                                <a class="nav-link {{ request()->routeIs('admin.modalidades.geral') ? 'active' : '' }}"
+                                   href="{{ route('admin.modalidades.geral') }}">Modalidades</a>
+                                <a class="nav-link {{ request()->routeIs('admin.kits.geral') ? 'active' : '' }}"
+                                   href="{{ route('admin.kits.geral') }}">Kits</a>
+                                <a class="nav-link {{ request()->routeIs('admin.lotes.geral') ? 'active' : '' }}"
+                                   href="{{ route('admin.lotes.geral') }}">Lotes</a>
+                                <a class="nav-link {{ request()->routeIs('admin.categorias.geral') ? 'active' : '' }}"
+                                   href="{{ route('admin.categorias.geral') }}">Categorias</a>
+                            </nav>
+                        </div>
 
                         <a class="nav-link nav-icone-cupons {{ request()->routeIs('admin.cupons.*') ? 'active' : '' }}"
                            href="{{ route('admin.cupons.index') }}">
