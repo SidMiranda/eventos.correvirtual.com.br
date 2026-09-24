@@ -49,3 +49,16 @@ Laravel 12 / PHP 8.3, Blade + Tailwind (via Vite), Postgres 16 (Docker), Nginx, 
 ## Skills e subagentes
 
 Use as skills e subagentes do Claude Code quando a tarefa se encaixar no que eles cobrem (ex.: revisão de código, execução da aplicação para validar visualmente uma mudança de frontend) em vez de reinventar o processo na mão.
+
+## Comunicação entre projetos: o MATRIX (decisão do Sidney, 2026-09-24)
+
+O correio entre os projetos do Sidney é a pasta `MATRIX` do Google Drive dele. **O contrato inteiro está em
+`MATRIX/_protocolo.md` — ler antes de mandar ou tratar qualquer mensagem; não copiar as regras para cá.**
+- Onde: na máquina Windows do Sidney é o disco `G:\Meu Drive\MATRIX`; em outro servidor, pela API do Google
+  Drive (pasta `MATRIX` na raiz do Meu Drive dele).
+- A minha caixa é `MATRIX/inbox/eventos/`. **Ler ao começar uma tarefa e antes de encerrá-la**; o que
+  está fora de `lido/` é pendente. Tratou, move para `lido/`. Nunca editar nem apagar mensagem.
+- Mandar = gravar um arquivo Markdown em `MATRIX/inbox/<destino>/`, nome `AAAA-MM-DD_HHMM_eventos_<assunto>.md`,
+  cabeçalho De/Para/Data/Assunto/Responde-a/Anexos. Uma preocupação por mensagem.
+- Segredo nenhum entra no MATRIX (chave, token, `.env`): só o ponteiro.
+- Dúvida sobre a regra: recado para `inbox/cubo/` com assunto começando por `protocolo:`.
