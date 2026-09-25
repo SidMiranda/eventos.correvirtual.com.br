@@ -2,6 +2,8 @@
      cabeçalho para deixar claro que modalidades e kits pertencem ao evento
      aberto, e não a uma área solta do painel. --}}
 
+@include('admin._banner-do-evento', ['event' => $event])
+
 <ul class="nav nav-tabs mb-4">
     <li class="nav-item">
         <a class="nav-link {{ request()->routeIs('admin.eventos.edit') ? 'active' : '' }}"

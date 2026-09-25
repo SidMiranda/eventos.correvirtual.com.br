@@ -3,6 +3,7 @@
 @section('titulo', 'Editar evento')
 @section('icone', 'calendar')
 @section('subtitulo', $event->title)
+@include('admin._banner-do-evento', ['event' => $event])
 
 @section('conteudo')
 

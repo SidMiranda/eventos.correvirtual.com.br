@@ -189,6 +189,34 @@
         /* Ícone do cabeçalho de cada página, sobre o banner escuro. */
         .page-header-icon svg { color: #fff; opacity: .9; }
 
+        /* Cabeçalho com o banner do evento aberto. A camada escura por cima
+           e a caixa translúcida atrás do texto garantem leitura sobre qualquer
+           arte — clara, escura ou cheia de letra. Cartaz em pé aparece pelo
+           meio: aqui a imagem serve para reconhecer o evento, não para ser lida. */
+        .page-header--banner {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            min-height: 190px;
+        }
+        .page-header--banner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0,0,0,.45), rgba(0,0,0,.15));
+        }
+        .page-header--banner > .container-fluid { position: relative; }
+        .page-header--banner .page-header-texto {
+            display: inline-block;
+            background: rgba(0,0,0,.55);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+            border-radius: .6rem;
+            padding: .75rem 1.1rem;
+        }
+        .page-header--banner .page-header-title { margin-bottom: 0; }
+        .page-header--banner .page-header-subtitle { color: rgba(255,255,255,.9); margin-top: .25rem; }
+
         /* Ações das tabelas: cinza em repouso, cor na intenção. Colorir todos
            deixaria a lista poluída — a cor aqui serve para dizer "isto apaga". */
         .btn-datatable[title="Editar"]:hover  { color: var(--icone-painel) !important; }
@@ -373,18 +401,27 @@
                      propósito. Fica estranho com os cards do painel, então a
                      sobreposição foi desfeita: banner mais baixo, conteúdo
                      começando logo abaixo dele. --}}
+                {{-- Nas telas de um evento, o banner dele no lugar do degradê
+                     (ver admin._banner-do-evento). --}}
+                @hasSection('banner_do_cabecalho')
+                <header class="page-header page-header-dark page-header--banner pb-4"
+                        style="background-image: url('@yield('banner_do_cabecalho')');">
+                @else
                 <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-4">
+                @endif
                     <div class="container-fluid">
                         <div class="page-header-content pt-4">
                             <div class="row align-items-center justify-content-between">
                                 <div class="col-auto mt-4">
-                                    <h1 class="page-header-title">
-                                        <div class="page-header-icon"><i data-feather="@yield('icone', 'file')"></i></div>
-                                        @yield('titulo', 'Painel')
-                                    </h1>
-                                    @hasSection('subtitulo')
-                                        <div class="page-header-subtitle">@yield('subtitulo')</div>
-                                    @endif
+                                    <div class="page-header-texto">
+                                        <h1 class="page-header-title">
+                                            <div class="page-header-icon"><i data-feather="@yield('icone', 'file')"></i></div>
+                                            @yield('titulo', 'Painel')
+                                        </h1>
+                                        @hasSection('subtitulo')
+                                            <div class="page-header-subtitle">@yield('subtitulo')</div>
+                                        @endif
+                                    </div>
                                 </div>
                                 @hasSection('acoes')
                                     <div class="col-12 col-xl-auto mt-4">@yield('acoes')</div>
