@@ -82,4 +82,13 @@ class BannerNoCabecalhoTest extends TestCase
             ->assertDontSee('page-header-dark page-header--banner', false)
             ->assertSee('bg-gradient-primary-to-secondary', false);
     }
+
+    public function test_dados_do_evento_mantem_as_abas_do_evento(): void
+    {
+        $this->actingAs($this->admin)->get("/admin/eventos/{$this->natal->id}/edit")
+            ->assertOk()
+            ->assertSee('nav nav-tabs', false)
+            ->assertSee("/admin/eventos/{$this->natal->id}/kits", false)
+            ->assertSee("/admin/eventos/{$this->natal->id}/precos", false);
+    }
 }

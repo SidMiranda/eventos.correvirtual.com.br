@@ -9,6 +9,7 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 ### Painel: o banner do evento no cabeçalho (2026-09-25)
 - **Nas telas de um evento** (Dados, Modalidades, Kits, Lotes, Preços, Categorias) o cabeçalho mostra o **banner daquele evento** no lugar do degradê — trocar de evento troca a imagem. Pedido do dono: com o cabeçalho igual em tudo, não dava para saber em que evento se estava.
 - Título e nome do evento ficam numa **caixa escura translúcida** sobre a arte, para ler bem em qualquer imagem. Evento sem banner e telas gerais continuam com o degradê.
+- **"Dados do evento" ganhou as abas do evento** (Modalidades, Kits, Lotes, Preços, Categorias): antes, voltar a ela sumia com as abas e obrigava a passar pelo menu de novo.
 
 ### Camiseta infantil (2026-09-25)
 - **Novo grupo "Infantil" na tabela de medidas**: 4 (32 x 47), 6 (36 x 51), 8 (38 x 54), 10 (39 x 56), 12 (41 x 60) e 14 (45 x 64 cm), conforme a tabela do fornecedor. O formulário do kit passa a ter três colunas (Camiseta, Baby look, Infantil); o organizador marca quais o kit oferece.

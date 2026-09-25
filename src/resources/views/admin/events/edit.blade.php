@@ -3,9 +3,12 @@
 @section('titulo', 'Editar evento')
 @section('icone', 'calendar')
 @section('subtitulo', $event->title)
-@include('admin._banner-do-evento', ['event' => $event])
 
 @section('conteudo')
+
+    {{-- As abas aqui também: sem elas, voltar a "Dados do evento" tirava o
+         organizador do evento e o obrigava a passar pelo menu de novo. --}}
+    @include('admin._abas-do-evento')
 
     <div class="row justify-content-center">
         <div class="col-xl-8">
