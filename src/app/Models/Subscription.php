@@ -226,6 +226,20 @@ class Subscription extends Model
     }
 
     /**
+     * Equipe é texto livre (decisão do dono em 2026-09-22), mas não é campo
+     * aberto: só letras, números e espaço. O nome vai para a lista de largada
+     * e para o relatório do organizador — pontuação e símbolo ali só criam
+     * equipe duplicada e linha torta no papel. Vale na inscrição e na edição
+     * pela "Minha conta".
+     */
+    public const REGRA_DA_EQUIPE = ['nullable', 'string', 'max:50', 'regex:/^[\p{L}\p{N} ]+$/u'];
+
+    public const MENSAGENS_DA_EQUIPE = [
+        'equipe.regex' => 'O nome da equipe aceita só letras, números e espaços.',
+        'equipe.max' => 'O nome da equipe passou de 50 caracteres.',
+    ];
+
+    /**
      * A equipe como ela é guardada: sem espaço sobrando e em CAIXA ALTA.
      *
      * É texto livre (decisão do dono em 2026-09-22), então "corre mogi",

@@ -323,3 +323,24 @@
     font-size: .9rem;
     margin: 0 0 14px;
 }
+
+/* ---------------------------------------------------------------- editar inscrição */
+
+.conta__voltar {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 700;
+    color: #0d1b2a;
+    text-decoration: none;
+    margin-bottom: 4px;
+}
+
+.insc--cabecalho { box-shadow: none; }
+.insc--cabecalho .insc__titulo { font-size: 1.1rem; }
+
+.conta .campo select {
+    appearance: auto;
+}
+
+.conta .opcional { font-weight: 400; color: #6b7b8b; }

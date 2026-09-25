@@ -71,6 +71,11 @@
                 <button type="submit" class="botao botao--perigo" onclick="return confirm('Deseja realmente cancelar esta inscrição?')">Cancelar</button>
             </form>
         @endif
+        {{-- Editar só aparece enquanto dá para editar; a regra é a mesma da
+             tela de edição (AlteracaoDeInscricao). --}}
+        @if (\App\Support\AlteracaoDeInscricao::para($inscricao)->permitida())
+            <a href="{{ route('conta.inscricao', $inscricao->id) }}" class="botao botao--neutro">Editar</a>
+        @endif
         <a href="/event/{{ $event->id }}" class="botao botao--neutro">Ver evento</a>
     </div>
 </article>

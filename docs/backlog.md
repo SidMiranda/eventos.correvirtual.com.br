@@ -81,6 +81,10 @@ Objetivo: site público bonito e funcional, um organizador, fluxo de inscrição
 - [ ] **Relatório financeiro por evento** — já dá para fazer lendo só `subscriptions`: bruto (`list_price`), descontos (`discount_amount`), líquido (`price`), por cupom (`coupon_id`), pagas vs. pendentes. Nenhuma coluna nova é necessária.
 - [ ] **O fuso da aplicação é UTC** (`config/app.php`), então "hoje" vira o dia seguinte às 21h no horário de Brasília. Para o cupom isso é concreto: um que expira dia 20 morre às 21h do dia 20, três horas antes do que o organizador combinou. Vale para todas as datas do sistema (prazo de inscrição, data do evento), não só para cupom. Resolver é trocar o fuso para `America/Sao_Paulo` e conferir o que já está gravado — não é mudança isolada de uma tela.
 - [ ] **Fonte Metropolis dá 404 no painel** (`/assets/admin/fonts/metropolis/*.otf`): o CSS do SB Admin Pro referencia arquivos que não vieram no template. O navegador cai na fonte de sistema e nada quebra visualmente, mas são quatro 404 por página no console. Ou trazer os arquivos, ou tirar o `@font-face`.
+- [x] **Área do atleta ("Minha conta")** — 2026-09-25, spec `docs/specs/area-do-atleta.md`: inscrições em próximas/realizadas, perfil (nome, celular, cidade, PCD) e edição de camiseta/equipe até o "Alterações até" do evento. Ficou para depois:
+  - [ ] **Estoque por tamanho de camiseta** — hoje a troca só respeita o prazo. Entra como uma condição a mais em `AlteracaoDeInscricao::aceitaTamanho()` (e na inscrição).
+  - [ ] **Troca de e-mail pelo atleta** — exige confirmar o endereço novo antes de trocar o login.
+  - [ ] **Troca de modalidade ou kit** — muda o preço; precisa de regra de diferença (cobrar ou devolver).
 - [ ] Geração de número de peito (`bib_number`) após pagamento confirmado
 - [ ] BUG-007 (throttle em login/registro/verificação)
 - [ ] Papéis `organizer_admin` / `super_admin` (hoje só `athlete` é usado de fato)

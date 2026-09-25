@@ -162,6 +162,9 @@ class EventController extends AdminController
             'location' => ['required', 'string', 'max:255'],
             'event_date' => ['required', 'date'],
             'registration_deadline' => ['required', 'date', 'before_or_equal:event_date'],
+            // Até quando o atleta troca camiseta e equipe. Vazio = o prazo de
+            // inscrição (Event::prazoDeAlteracoes).
+            'changes_deadline' => ['nullable', 'date', 'before_or_equal:event_date'],
             'banner' => ImagensDoEvento::regraDeValidacao(),
             'card' => ImagensDoEvento::regraDeValidacao(),
             // Só hexadecimal de 6 dígitos: o valor vai direto para o style de
@@ -174,6 +177,7 @@ class EventController extends AdminController
         ], [
             'accent_color.regex' => 'A cor precisa estar no formato #RRGGBB.',
             'registration_deadline.before_or_equal' => 'O prazo de inscrição não pode ser depois da data do evento.',
+            'changes_deadline.before_or_equal' => 'O prazo de alterações não pode ser depois da data do evento.',
             'banner.image' => 'O banner precisa ser uma imagem (JPG, PNG ou WEBP).',
             'banner.max' => 'O banner passou de 5 MB.',
             'card.image' => 'O card precisa ser uma imagem (JPG, PNG ou WEBP).',

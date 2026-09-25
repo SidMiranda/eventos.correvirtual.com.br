@@ -1,6 +1,6 @@
 # Área do atleta — "Minha conta"
 
-Status: Em implementação — fatia 1 (inscrições) e fatia 2 (perfil) em 2026-09-25
+Status: Implementado — fatias 1 (inscrições), 2 (perfil) e 3 (editar inscrição) em 2026-09-25
 
 ## Problema
 
@@ -33,12 +33,14 @@ pensada para uma mão e um polegar primeiro.
       `public/js/campo-cidade.js`), o mesmo no cadastro e no perfil.
 
 **Editar inscrição** (fatia 3)
-- [ ] O atleta altera **equipe** e **tamanho da camiseta** (só entre os
+- [x] O atleta altera **equipe** e **tamanho da camiseta** (só entre os
       tamanhos do kit dele).
-- [ ] Até o prazo **"Alterações até"** do evento (campo novo). Vazio = o
+- [x] Até o prazo **"Alterações até"** do evento (campo novo). Vazio = o
       encerramento das inscrições. Depois disso, e em evento realizado ou
       inscrição cancelada, os campos aparecem travados com o motivo.
-- [ ] Só a própria inscrição, só do organizador do site; a de outra pessoa dá 404.
+- [x] Só a própria inscrição, só do organizador do site; a de outra pessoa dá 404.
+- [x] "Editar" aparece na lista só enquanto dá para editar (mesma regra).
+- [x] A regra da equipe (`Subscription::REGRA_DA_EQUIPE`) é a mesma da inscrição.
 
 ## Fora de escopo
 
@@ -83,7 +85,7 @@ do evento.
 - `MinhaContaTest` — deslogado vai ao login; só as inscrições do atleta e do
   organizador do site; próximas e realizadas separadas; realizada sem Pagar/
   Cancelar; os dois endereços respondem; miniatura presente.
-- `PerfilDoAtletaTest` (fatia 2), `EditarInscricaoTest` e
-  `AlteracaoDeInscricaoTest` (fatia 3).
+- `PerfilDoAtletaTest` (fatia 2) e `EditarInscricaoTest` (fatia 3, com a regra
+  de `AlteracaoDeInscricao`); `EventCrudTest` cobre o prazo no painel.
 - Os testes existentes que abrem `/my-subscriptions` continuam passando sem
   mudança.

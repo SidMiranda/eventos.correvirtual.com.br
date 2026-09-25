@@ -28,7 +28,7 @@ final class InscricoesDoAtleta
 
     public static function de(User $atleta, int $organizerId): self
     {
-        $todas = Subscription::with(['event', 'modality', 'kit', 'coupon', 'ageCategory'])
+        $todas = Subscription::with(['event', 'modality', 'kit.options', 'coupon', 'ageCategory'])
             ->where('user_id', $atleta->id)
             ->whereHas('event', fn ($q) => $q->where('organizer_id', $organizerId))
             ->get();

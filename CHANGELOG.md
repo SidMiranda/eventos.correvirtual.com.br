@@ -6,6 +6,11 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Minha conta — fatia 3: editar inscrição (2026-09-25)
+- **O atleta troca o tamanho da camiseta e a equipe** da própria inscrição (`/minha-conta/inscricoes/{id}`), só entre os tamanhos do kit dele e com a mesma regra de equipe da inscrição. Modalidade, kit e valores não mudam por aqui.
+- **Campo novo no evento: "Alterações até"** (`events.changes_deadline`, opcional). Em branco, vale o encerramento das inscrições. Depois do prazo, em evento realizado ou inscrição cancelada, a tela trava os campos e diz por quê — e o botão "Editar" some da lista.
+- A regra "pode alterar?" mora em `App\Support\AlteracaoDeInscricao` — é onde o estoque por tamanho vai entrar (backlog).
+
 ### Minha conta — fatia 2: perfil (2026-09-25)
 - **Aba "Perfil" na Minha conta** (`/minha-conta/perfil`): o atleta altera **nome, celular, cidade (da lista) e PCD**. E-mail, CPF, data de nascimento, sexo e CPF do responsável aparecem só para conferência — não mudam por aqui, nem se forem enviados no formulário (decisão do dono). Link para "Alterar senha".
 - Formulário para celular: rótulo em cima, campos de 46px com fonte de 16px (o iPhone não dá zoom), teclado numérico no celular.

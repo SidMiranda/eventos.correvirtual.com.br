@@ -19,6 +19,7 @@ class Event extends Model
         'location',
         'event_date',
         'registration_deadline',
+        'changes_deadline',
         'age_criteria',
         'banner_url',
         'banner_ratio',
@@ -31,6 +32,7 @@ class Event extends Model
         return [
             'event_date' => 'datetime',
             'registration_deadline' => 'datetime',
+            'changes_deadline' => 'datetime',
             'banner_ratio' => 'float',
         ];
     }
@@ -211,6 +213,15 @@ class Event extends Model
     | desatualizar. A contrapartida é que não dá para cancelar nem reabrir um
     | evento na mão — se isso for preciso, vira coluna.
     */
+
+    /**
+     * Até quando o atleta troca camiseta e equipe pela "Minha conta". Sem o
+     * campo preenchido, vale o encerramento das inscrições.
+     */
+    public function prazoDeAlteracoes(): ?\Illuminate\Support\Carbon
+    {
+        return $this->changes_deadline ?? $this->registration_deadline;
+    }
 
     public function jaAconteceu(): bool
     {

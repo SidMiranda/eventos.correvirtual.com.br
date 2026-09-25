@@ -129,19 +129,14 @@ class SubscribeController extends Controller
             'modality_id' => ['required', 'integer', Rule::exists('event_modalities', 'id')->where('event_id', $event->id)->where('active', true)],
             'kit_id'      => ['required', 'integer', Rule::exists('event_kits', 'id')->where('event_id', $event->id)->where('active', true)],
             'cupom'       => ['nullable', 'string', 'max:20'],
-            // Equipe é texto livre (decisão do dono em 2026-09-22), mas não é
-            // campo aberto: só letras, números e espaço. O nome vai para a
-            // lista de largada e para o relatório do organizador — pontuação e
-            // símbolo ali só criam equipe duplicada e linha torta no papel.
-            'equipe'      => ['nullable', 'string', 'max:50', 'regex:/^[\p{L}\p{N} ]+$/u'],
+            'equipe'      => Subscription::REGRA_DA_EQUIPE,
             // O tamanho é conferido contra o KIT, logo abaixo: obrigatório só
             // quando o kit tem tamanhos, e só entre os que ele oferece.
             'camiseta'    => ['nullable', 'string', 'max:20'],
         ], [
             'required' => 'Por favor, selecione as opções de modalidade e kit.',
             'exists'   => 'A modalidade ou o kit selecionado não é válido para este evento.',
-            'equipe.regex' => 'O nome da equipe aceita só letras, números e espaços.',
-            'equipe.max'   => 'O nome da equipe passou de 50 caracteres.',
+            ...Subscription::MENSAGENS_DA_EQUIPE,
             'cupom.max' => 'O código do cupom é curto: 6 ou 7 caracteres.',
         ]);
 

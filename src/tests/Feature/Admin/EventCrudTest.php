@@ -248,4 +248,31 @@ class EventCrudTest extends TestCase
 
         $this->assertDatabaseHas('events', ['id' => $evento->id]);
     }
+
+    public function test_prazo_de_alteracoes_e_gravado_e_pode_ficar_vazio(): void
+    {
+        $prazo = now()->addWeeks(5)->startOfMinute();
+
+        $this->actingAs($this->adminA)
+            ->post('/admin/eventos', $this->dadosValidos(['changes_deadline' => $prazo->format('Y-m-d\TH:i')]))
+            ->assertRedirect('/admin/eventos');
+
+        $evento = Event::where('title', 'Corrida de Primavera')->first();
+        $this->assertTrue($evento->changes_deadline->equalTo($prazo));
+
+        // Vazio: vale o encerramento das inscrições.
+        $this->actingAs($this->adminA)
+            ->post('/admin/eventos', $this->dadosValidos(['title' => 'Sem Prazo']))
+            ->assertRedirect('/admin/eventos');
+        $semPrazo = Event::where('title', 'Sem Prazo')->first();
+        $this->assertNull($semPrazo->changes_deadline);
+        $this->assertTrue($semPrazo->prazoDeAlteracoes()->equalTo($semPrazo->registration_deadline));
+    }
+
+    public function test_prazo_de_alteracoes_depois_do_evento_e_recusado(): void
+    {
+        $this->actingAs($this->adminA)
+            ->post('/admin/eventos', $this->dadosValidos(['changes_deadline' => now()->addMonths(3)->format('Y-m-d\TH:i')]))
+            ->assertSessionHasErrors('changes_deadline');
+    }
 }

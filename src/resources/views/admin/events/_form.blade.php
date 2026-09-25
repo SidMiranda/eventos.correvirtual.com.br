@@ -181,6 +181,23 @@
     @enderror
 </div>
 
+{{-- Até quando o atleta troca camiseta e equipe pela "Minha conta"
+     (docs/specs/area-do-atleta.md). Vazio = o encerramento das inscrições. --}}
+<div class="form-group">
+    <label class="small mb-1" for="changes_deadline">Alterações até <span class="text-muted">(opcional)</span></label>
+    <input class="form-control @error('changes_deadline') is-invalid @enderror" style="max-width: 280px;"
+           id="changes_deadline" name="changes_deadline" type="datetime-local"
+           value="{{ $valorData('changes_deadline') }}">
+    @error('changes_deadline')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @else
+        <small class="form-text text-muted">
+            Até quando o atleta pode trocar o tamanho da camiseta e a equipe pela área dele.
+            Em branco, vale a data de encerramento das inscrições.
+        </small>
+    @enderror
+</div>
+
 <hr class="my-4">
 <h6 class="text-muted mb-3" style="letter-spacing:.06em; text-transform:uppercase; font-size:12px;">Categorias etárias</h6>
 
