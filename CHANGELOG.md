@@ -6,6 +6,9 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Atalho da Minha conta no celular (2026-09-25)
+- **Ícone de pessoa ao lado do hambúrguer** no menu da home, só no celular: leva à "Minha conta" (sem login, passa pelo login antes).
+
 ### Minha conta — fatia 3: editar inscrição (2026-09-25)
 - **O atleta troca o tamanho da camiseta e a equipe** da própria inscrição (`/minha-conta/inscricoes/{id}`), só entre os tamanhos do kit dele e com a mesma regra de equipe da inscrição. Modalidade, kit e valores não mudam por aqui.
 - **Campo novo no evento: "Alterações até"** (`events.changes_deadline`, opcional). Em branco, vale o encerramento das inscrições. Depois do prazo, em evento realizado ou inscrição cancelada, a tela trava os campos e diz por quê — e o botão "Editar" some da lista.

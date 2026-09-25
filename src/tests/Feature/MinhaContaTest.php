@@ -150,4 +150,17 @@ class MinhaContaTest extends TestCase
     {
         $this->conta()->assertOk()->assertSee('href="/minha-conta"', false);
     }
+
+    public function test_a_home_tem_o_atalho_da_conta_ao_lado_do_hamburguer(): void
+    {
+        foreach ([null, $this->atleta] as $quem) {
+            $resposta = $quem ? $this->actingAs($quem)->get('/') : $this->get('/');
+
+            $resposta->assertOk()->assertSeeInOrder([
+                'class="cv-nav__conta"',
+                'aria-label="Minha conta"',
+                'class="cv-nav__toggle"',
+            ], false);
+        }
+    }
 }

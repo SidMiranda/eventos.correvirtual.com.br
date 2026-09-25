@@ -191,6 +191,19 @@ html {
   padding: 8px;
 }
 
+.cv-nav__conta {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+  color: var(--cv-navy);
+  border-radius: 50%;
+}
+
+.cv-nav__conta:hover { background: rgba(13, 27, 42, .06); }
+
 .cv-nav__toggle span {
   width: 24px;
   height: 2px;
@@ -206,6 +219,10 @@ html {
 
   .cv-nav__toggle {
     display: flex;
+  }
+
+  .cv-nav__conta {
+    display: inline-flex;
   }
 
   .cv-nav__links {
