@@ -6,6 +6,11 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Minha conta — fatia 2: perfil (2026-09-25)
+- **Aba "Perfil" na Minha conta** (`/minha-conta/perfil`): o atleta altera **nome, celular, cidade (da lista) e PCD**. E-mail, CPF, data de nascimento, sexo e CPF do responsável aparecem só para conferência — não mudam por aqui, nem se forem enviados no formulário (decisão do dono). Link para "Alterar senha".
+- Formulário para celular: rótulo em cima, campos de 46px com fonte de 16px (o iPhone não dá zoom), teclado numérico no celular.
+- O campo de cidade com busca virou componente (`<x-campo-cidade>`, `public/js/campo-cidade.js`), usado no cadastro e no perfil.
+
 ### Minha conta — fatia 1: inscrições (2026-09-25)
 - **"Minhas inscrições" virou "Minha conta"** (`/minha-conta`; o endereço antigo `/my-subscriptions` mostra a mesma tela, sem redirecionar, para não perder o aviso de "inscrição feita" nem quebrar os e-mails já enviados).
 - **Duas seções: Próximas e Realizadas.** Cada inscrição numa linha compacta com **miniatura** do evento no lugar do cartaz grande, data, modalidade/kit, camiseta, equipe, valor e situação.

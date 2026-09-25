@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Conta\InscricoesDoAtletaController;
+use App\Http\Controllers\Conta\PerfilDoAtletaController;
 use App\Http\Controllers\Subscriptions\SubscribeController;
 use App\Http\Controllers\Events\EventsController;
 use App\Http\Controllers\Subscriptions\PixController;
@@ -122,6 +123,8 @@ Route::post('/event-pay', [PixController::class, 'generatePix'])
 Route::middleware('auth')->group(function () {
     Route::get('/minha-conta', [InscricoesDoAtletaController::class, 'index'])->name('conta.inscricoes');
     Route::get('/my-subscriptions', [InscricoesDoAtletaController::class, 'index'])->name('subscriptions.my');
+    Route::get('/minha-conta/perfil', [PerfilDoAtletaController::class, 'edit'])->name('conta.perfil');
+    Route::put('/minha-conta/perfil', [PerfilDoAtletaController::class, 'update']);
 });
 
 Route::get('/subscribe/event/{event_id}', [SubscribeController::class, 'showSubscribeForm'])

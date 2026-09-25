@@ -1,6 +1,6 @@
 # Área do atleta — "Minha conta"
 
-Status: Em implementação — fatia 1 (inscrições) em 2026-09-25
+Status: Em implementação — fatia 1 (inscrições) e fatia 2 (perfil) em 2026-09-25
 
 ## Problema
 
@@ -24,11 +24,13 @@ pensada para uma mão e um polegar primeiro.
       e-mails já enviados e os redirecionamentos do pagamento continuam valendo.
 
 **Perfil** (fatia 2)
-- [ ] O atleta altera: **nome, telefone, cidade (da lista) e PCD**.
-- [ ] **Não altera** (decisão do dono, 2026-09-25): data de nascimento, sexo,
+- [x] O atleta altera: **nome, telefone, cidade (da lista) e PCD**.
+- [x] **Não altera** (decisão do dono, 2026-09-25): data de nascimento, sexo,
       CPF, CPF do responsável e e-mail. Aparecem como leitura; mandar esses
       campos no formulário não muda nada.
-- [ ] Link para "Alterar senha", que já existe.
+- [x] Link para "Alterar senha", que já existe.
+- [x] O campo de cidade com busca virou um componente (`<x-campo-cidade>` +
+      `public/js/campo-cidade.js`), o mesmo no cadastro e no perfil.
 
 **Editar inscrição** (fatia 3)
 - [ ] O atleta altera **equipe** e **tamanho da camiseta** (só entre os

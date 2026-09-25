@@ -5,21 +5,10 @@
 @section('content')
 
 <style>
-    /* Só a lista de sugestões da cidade; o resto do formulário é o forms.css.
+    /* O resto do formulário é o forms.css (a cidade traz o próprio estilo,
+       no componente campo-cidade).
        Inline porque esta tela ainda está no CSS antigo, pendente do redesign
        (backlog) — não vale abrir arquivo novo para isso. */
-    .cidade-campo { position: relative; width: 100%; }
-    .cidade-lista {
-        position: absolute; z-index: 20; left: 0; right: 0; top: 100%;
-        margin: -8px 0 0; padding: 0; list-style: none; text-align: left;
-        background: #fff; border: 1px solid #ccc; border-radius: 6px;
-        max-height: 240px; overflow-y: auto;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
-    }
-    .cidade-lista li { padding: 10px 14px; cursor: pointer; font-size: 15px; }
-    .cidade-lista li:hover, .cidade-lista li[aria-selected="true"] { background: #eaf4ec; }
-    .cidade-lista li.cidade-vazia { color: #666; cursor: default; }
-    .cidade-lista li.cidade-vazia:hover { background: #fff; }
     .aviso-responsavel { font-size: 13px; color: #666; margin: -8px 0 12px; text-align: left; }
     .campo-pcd { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 12px; font-size: 15px; color: #333; text-align: left; cursor: pointer; }
     .campo-pcd input { width: 18px; height: 18px; margin: 0; flex: none; }
@@ -67,24 +56,7 @@ Outro
 
 </select>
 
-{{-- Cidade: texto visível + o id escondido, que é o que vai para o banco.
-     Quem digita e não escolhe da lista não passa na validação — assim o que
-     foi digitado não se perde em silêncio, e a cidade fica vinculada de
-     verdade ao município do IBGE. --}}
-<div class="cidade-campo">
-    <input
-    type="text"
-    name="cidade"
-    id="campoCidade"
-    autocomplete="off"
-    maxlength="120"
-    placeholder="Cidade"
-    value="{{ old('cidade') }}"
-    required
-    >
-    <input type="hidden" name="city_id" id="campoCidadeId" value="{{ old('city_id') }}">
-    <ul class="cidade-lista" id="listaCidades" hidden></ul>
-</div>
+<x-campo-cidade :texto="old('cidade')" :cidade-id="old('city_id')" />
 
 <input 
 type="text"
@@ -168,108 +140,6 @@ Já tenho conta
             e.target.value = value;
         });
     }
-
-    /* ------------------------------------------------------------------
-       Cidade: busca no nosso banco a partir de 3 letras.
-
-       O texto que a pessoa vê e o `city_id` que vai para o banco são campos
-       separados: qualquer digitação depois de escolher limpa o id, senão
-       daria para escolher "Mogi Guaçu", apagar tudo, escrever outra coisa e
-       enviar o id antigo junto.
-       ------------------------------------------------------------------ */
-    (function () {
-        var campo = document.getElementById('campoCidade');
-        var campoId = document.getElementById('campoCidadeId');
-        var lista = document.getElementById('listaCidades');
-        if (!campo || !campoId || !lista) { return; }
-
-        var MINIMO = 3;
-        var url = @json(route('cidades.buscar'));
-        var espera = null;
-        var atual = -1;
-        var opcoes = [];
-
-        function fechar() {
-            lista.hidden = true;
-            lista.innerHTML = '';
-            atual = -1;
-            opcoes = [];
-        }
-
-        function escolher(opcao) {
-            campo.value = opcao.nome;
-            campoId.value = opcao.id;
-            fechar();
-        }
-
-        function desenhar(cidades) {
-            lista.innerHTML = '';
-            opcoes = cidades;
-
-            if (!cidades.length) {
-                var vazio = document.createElement('li');
-                vazio.className = 'cidade-vazia';
-                vazio.textContent = 'Nenhuma cidade encontrada.';
-                lista.appendChild(vazio);
-                lista.hidden = false;
-                return;
-            }
-
-            cidades.forEach(function (cidade, i) {
-                var item = document.createElement('li');
-                item.textContent = cidade.nome;
-                item.setAttribute('role', 'option');
-                item.addEventListener('mousedown', function (e) {
-                    /* mousedown e não click: o blur do campo fecharia a lista
-                       antes de o clique chegar. */
-                    e.preventDefault();
-                    escolher(cidade);
-                });
-                lista.appendChild(item);
-                if (i === atual) { item.setAttribute('aria-selected', 'true'); }
-            });
-
-            lista.hidden = false;
-        }
-
-        function marcar(novo) {
-            var itens = lista.querySelectorAll('li[role="option"]');
-            if (!itens.length) { return; }
-            if (atual >= 0 && itens[atual]) { itens[atual].removeAttribute('aria-selected'); }
-            atual = (novo + itens.length) % itens.length;
-            itens[atual].setAttribute('aria-selected', 'true');
-            itens[atual].scrollIntoView({ block: 'nearest' });
-        }
-
-        function buscar() {
-            var termo = campo.value.trim();
-            if (termo.length < MINIMO) { fechar(); return; }
-
-            fetch(url + '?q=' + encodeURIComponent(termo), {
-                headers: { 'Accept': 'application/json' }
-            })
-                .then(function (r) { return r.ok ? r.json() : []; })
-                .then(desenhar)
-                .catch(fechar);
-        }
-
-        campo.addEventListener('input', function () {
-            /* Mexeu no texto, o vínculo anterior deixa de valer. */
-            campoId.value = '';
-            clearTimeout(espera);
-            espera = setTimeout(buscar, 250);
-        });
-
-        campo.addEventListener('keydown', function (e) {
-            if (lista.hidden) { return; }
-            if (e.key === 'ArrowDown') { e.preventDefault(); marcar(atual + 1); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); marcar(atual - 1); }
-            else if (e.key === 'Enter' && atual >= 0 && opcoes[atual]) { e.preventDefault(); escolher(opcoes[atual]); }
-            else if (e.key === 'Escape') { fechar(); }
-        });
-
-        campo.addEventListener('blur', function () { setTimeout(fechar, 120); });
-    })();
 
     /* ------------------------------------------------------------------
        CPF do responsável: aparece só para quem informa menos de 18 anos.

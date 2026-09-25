@@ -10,6 +10,7 @@
 @section('content')
     <main class="conta">
         <h1 class="conta__titulo">Minha conta</h1>
+        @include('conta._abas')
 
         <x-app.response-message />
 
