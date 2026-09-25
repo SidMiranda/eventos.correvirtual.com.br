@@ -113,6 +113,12 @@ final class PrecosLegados
         ]);
     }
 
+    /** Os 10 tamanhos que existiam quando a migração foi escrita. */
+    public static function tamanhosAdultos(): array
+    {
+        return array_merge(array_keys(Subscription::CAMISETAS), array_keys(Subscription::CAMISETAS_BABY_LOOK));
+    }
+
     private static function tamanhosIniciais(EventKit $kit): int
     {
         if ($kit->options()->where('attribute', KitOption::TAMANHO)->exists()) {
@@ -124,7 +130,9 @@ final class PrecosLegados
         }
 
         $posicao = 0;
-        foreach (Subscription::tamanhosDeCamiseta() as $tamanho) {
+        // Só os adultos: o infantil (2026-09-25) é escolha do organizador,
+        // kit nenhum ganha sozinho.
+        foreach (self::tamanhosAdultos() as $tamanho) {
             $kit->options()->create([
                 'attribute' => KitOption::TAMANHO,
                 'value' => $tamanho,

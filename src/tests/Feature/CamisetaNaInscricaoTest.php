@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Event;
 use App\Models\EventKit;
 use App\Models\EventModality;
+use App\Models\KitOption;
 use App\Models\Organizer;
 use App\Models\Subscription;
 use App\Models\User;
@@ -109,6 +110,8 @@ class CamisetaNaInscricaoTest extends TestCase
 
     public function test_todos_os_tamanhos_da_tabela_sao_aceitos(): void
     {
+        $this->darTamanhosInfantis();
+
         foreach (Subscription::tamanhosDeCamiseta() as $tamanho) {
             $atleta = User::factory()->create(['role' => 'athlete']);
 
@@ -168,5 +171,39 @@ class CamisetaNaInscricaoTest extends TestCase
             strpos($html, 'name="kit_id"'),
             'A camiseta deve vir depois do kit.'
         );
+    }
+
+    private function darTamanhosInfantis(): void
+    {
+        foreach (array_keys(Subscription::CAMISETAS_INFANTIL) as $i => $codigo) {
+            $this->kit->options()->create(['attribute' => KitOption::TAMANHO, 'value' => $codigo, 'position' => 20 + $i]);
+        }
+    }
+
+    public function test_infantil_e_gravado_e_aparece_por_extenso(): void
+    {
+        $this->darTamanhosInfantis();
+
+        $this->inscrever(['camiseta' => 'INF10'])->assertSessionHasNoErrors();
+
+        $this->assertSame('INF10', $this->inscricao()->shirt_size);
+        $this->assertSame('Infantil 10 (39 x 56 cm)', $this->inscricao()->camisetaPorExtenso());
+    }
+
+    public function test_kit_sem_infantil_recusa_tamanho_infantil(): void
+    {
+        $this->inscrever(['camiseta' => 'INF8'])->assertSessionHasErrors('camiseta');
+
+        $this->assertDatabaseCount('subscriptions', 0);
+    }
+
+    public function test_o_formulario_mostra_o_infantil_por_extenso(): void
+    {
+        $this->darTamanhosInfantis();
+
+        $this->actingAs($this->atleta)
+            ->get("/subscribe/event/{$this->evento->id}")
+            ->assertOk()
+            ->assertSee('Infantil 4 (32 x 47 cm)');
     }
 }

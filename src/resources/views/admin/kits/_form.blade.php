@@ -89,14 +89,14 @@
 
 <div class="form-group">
     <div class="row">
-        @foreach (['Camiseta' => \App\Models\Subscription::CAMISETAS, 'Baby look' => \App\Models\Subscription::CAMISETAS_BABY_LOOK] as $grupo => $tabela)
-            <div class="col-md-6">
+        @foreach (\App\Models\Subscription::gruposDeCamiseta() as $grupo => $tabela)
+            <div class="col-md-4">
                 <div class="small text-muted mb-2">{{ $grupo }}</div>
                 @foreach ($tabela as $codigo => $medida)
                     <div class="custom-control custom-checkbox">
                         <input class="custom-control-input" type="checkbox" id="tam_{{ $codigo }}" name="tamanhos[]" value="{{ $codigo }}"
                                @checked($tamanhosMarcados->contains($codigo))>
-                        <label class="custom-control-label" for="tam_{{ $codigo }}">{{ $codigo }} <span class="text-muted">— {{ $medida }}</span></label>
+                        <label class="custom-control-label" for="tam_{{ $codigo }}">{{ \App\Models\Subscription::nomeDoTamanho($codigo) }} <span class="text-muted">— {{ $medida }}</span></label>
                     </div>
                 @endforeach
             </div>

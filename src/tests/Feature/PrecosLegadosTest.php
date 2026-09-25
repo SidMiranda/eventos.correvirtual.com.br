@@ -84,7 +84,9 @@ class PrecosLegadosTest extends TestCase
 
         PrecosLegados::migrarEvento($this->evento);
 
-        $this->assertSame(Subscription::tamanhosDeCamiseta(), $com->fresh()->tamanhos());
+        $this->assertSame(PrecosLegados::tamanhosAdultos(), $com->fresh()->tamanhos());
+        // O infantil (2026-09-25) é escolha do organizador: kit nenhum ganha sozinho.
+        $this->assertEmpty(array_filter($com->fresh()->tamanhos(), fn ($t) => str_starts_with($t, 'INF')));
         $this->assertSame([], $sem->fresh()->tamanhos());
         $this->assertFalse($sem->fresh()->temTamanhos());
     }

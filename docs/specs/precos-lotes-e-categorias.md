@@ -143,7 +143,8 @@ modalidades.
 
 `EventKit::tamanhos()` = `kit_options` com `attribute = 'shirt_size'`. O
 formulário oferece a tabela de medidas que já existe
-(`Subscription::CAMISETAS` + `CAMISETAS_BABY_LOOK`) como caixas de seleção.
+(`Subscription::CAMISETAS` + `CAMISETAS_BABY_LOOK` + `CAMISETAS_INFANTIL`,
+este desde 2026-09-25) como caixas de seleção.
 Kit sem tamanho marcado = não pede tamanho.
 
 ### Grade de preços (`/admin/eventos/{id}/precos`)
@@ -162,7 +163,7 @@ Roda na migration e fica disponível como `php artisan eventos:migrar-precos`
 1. Sem lote → cria "Lote 1", `starts_at = agora`, `ends_at = null`, posição 0.
 2. Cada kit sem vínculo → vinculado a **todas** as modalidades do evento.
 3. Cada (modalidade, kit) sem preço no lote → `event_kits.price`.
-4. Cada kit sem tamanho → recebe os 10 tamanhos da tabela, **exceto** se o nome
+4. Cada kit sem tamanho → recebe os 10 tamanhos adultos da tabela (nunca o infantil), **exceto** se o nome
    contém "sem camiseta" (caso real em produção). É heurística, e é a única:
    sem ela, o kit "Sem camiseta" passaria a exigir tamanho no dia seguinte ao
    lançamento. O organizador ajusta no formulário do kit.

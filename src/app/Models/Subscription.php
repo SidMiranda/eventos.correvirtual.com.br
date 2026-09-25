@@ -175,18 +175,49 @@ class Subscription extends Model
         'BLGG' => '48 x 68 cm',
     ];
 
+    /**
+     * Infantil (2026-09-25). O código é curto porque `shirt_size` guarda até
+     * 10 caracteres e "INFANTIL 10" tem 11; na tela vira "Infantil 10".
+     */
+    public const CAMISETAS_INFANTIL = [
+        'INF4' => '32 x 47 cm',
+        'INF6' => '36 x 51 cm',
+        'INF8' => '38 x 54 cm',
+        'INF10' => '39 x 56 cm',
+        'INF12' => '41 x 60 cm',
+        'INF14' => '45 x 64 cm',
+    ];
+
+    /** Os grupos da tabela de medidas, na ordem em que aparecem no painel. */
+    public static function gruposDeCamiseta(): array
+    {
+        return [
+            'Camiseta' => self::CAMISETAS,
+            'Baby look' => self::CAMISETAS_BABY_LOOK,
+            'Infantil' => self::CAMISETAS_INFANTIL,
+        ];
+    }
+
     /** Os códigos aceitos — é o que a validação do formulário confere. */
     public static function tamanhosDeCamiseta(): array
     {
-        return array_merge(array_keys(self::CAMISETAS), array_keys(self::CAMISETAS_BABY_LOOK));
+        return array_merge(...array_map('array_keys', array_values(self::gruposDeCamiseta())));
+    }
+
+    /** "INF10" → "Infantil 10"; os adultos ficam como estão ("G", "BLM"). */
+    public static function nomeDoTamanho(string $codigo): string
+    {
+        return isset(self::CAMISETAS_INFANTIL[$codigo])
+            ? 'Infantil ' . substr($codigo, 3)
+            : $codigo;
     }
 
     /** "G (56 x 73 cm)" — o que aparece na tela e no painel. */
     public static function rotuloDoTamanho(string $codigo): string
     {
-        $medida = self::CAMISETAS[$codigo] ?? self::CAMISETAS_BABY_LOOK[$codigo] ?? null;
+        $medida = self::CAMISETAS[$codigo] ?? self::CAMISETAS_BABY_LOOK[$codigo] ?? self::CAMISETAS_INFANTIL[$codigo] ?? null;
 
-        return $medida ? "{$codigo} ({$medida})" : $codigo;
+        return $medida ? self::nomeDoTamanho($codigo) . " ({$medida})" : $codigo;
     }
 
     public function camisetaPorExtenso(): ?string

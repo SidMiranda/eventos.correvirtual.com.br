@@ -233,4 +233,11 @@ class SubscriptionListTest extends TestCase
     {
         $this->lista()->assertOk()->assertSee('Nenhuma inscrição ainda.');
     }
+
+    public function test_a_camiseta_infantil_aparece_por_nome(): void
+    {
+        $this->inscricao($this->eventoA, ['shirt_size' => 'INF10']);
+
+        $this->lista()->assertOk()->assertSee('Camiseta Infantil 10');
+    }
 }

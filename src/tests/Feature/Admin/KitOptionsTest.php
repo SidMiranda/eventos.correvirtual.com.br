@@ -135,4 +135,24 @@ class KitOptionsTest extends TestCase
             ->assertSee('name="tamanhos[]"', false)
             ->assertSee('59 x 76 cm');
     }
+
+    public function test_kit_infantil_guarda_os_tamanhos_infantis_na_ordem_da_tabela(): void
+    {
+        $this->actingAs($this->adminA)
+            ->post("/admin/eventos/{$this->evento->id}/kits", $this->dados(['name' => 'Kit Kids', 'tamanhos' => ['INF14', 'INF4', 'INF8']]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(['INF4', 'INF8', 'INF14'], $this->evento->kits()->first()->tamanhos());
+    }
+
+    public function test_o_formulario_traz_o_grupo_infantil(): void
+    {
+        $this->actingAs($this->adminA)
+            ->get("/admin/eventos/{$this->evento->id}/kits/create")
+            ->assertOk()
+            ->assertSee('Infantil')
+            ->assertSee('value="INF10"', false)
+            ->assertSee('Infantil 10')
+            ->assertSee('39 x 56 cm');
+    }
 }

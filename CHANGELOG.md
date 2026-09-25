@@ -6,6 +6,11 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Camiseta infantil (2026-09-25)
+- **Novo grupo "Infantil" na tabela de medidas**: 4 (32 x 47), 6 (36 x 51), 8 (38 x 54), 10 (39 x 56), 12 (41 x 60) e 14 (45 x 64 cm), conforme a tabela do fornecedor. O formulário do kit passa a ter três colunas (Camiseta, Baby look, Infantil); o organizador marca quais o kit oferece.
+- **Nenhum kit ganha infantil sozinho**: os kits existentes continuam como estão, e a migração de preços antigos segue dando só os 10 tamanhos adultos.
+- Na tela aparece "Infantil 10 (39 x 56 cm)"; no banco o código é `INF10` (a coluna guarda até 10 caracteres).
+
 ### Botão de inscrição na página do evento (2026-09-25)
 - **O botão subiu para o alto da coluna** (antes do bloco "Data") e ganhou uma **repetição no fim da página**, abaixo do bloco "Inscrição". Texto centralizado, maior e em caixa alta. No celular o de baixo some: o do alto já fica fixo no rodapé da tela.
 - **Quem já se inscreveu vê a situação no lugar do "Inscreva-se"**: "Inscrição confirmada" (verde) ou "Aguardando pagamento" (amarelo), os dois levando a "Minhas inscrições". Vale mesmo com o prazo encerrado; inscrição cancelada volta a mostrar "Inscreva-se".

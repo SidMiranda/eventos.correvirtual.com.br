@@ -162,7 +162,7 @@
                                             <div class="small"><i data-feather="users" style="width:12px;height:12px;"></i> {{ $inscricao->team_name }}</div>
                                         @endif
                                         @if ($inscricao->shirt_size)
-                                            <div class="small text-muted">Camiseta {{ $inscricao->shirt_size }}</div>
+                                            <div class="small text-muted">Camiseta {{ \App\Models\Subscription::nomeDoTamanho($inscricao->shirt_size) }}</div>
                                         @endif
                                     </td>
                                     <td class="text-right">
