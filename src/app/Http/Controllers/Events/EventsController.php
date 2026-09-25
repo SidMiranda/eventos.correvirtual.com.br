@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Photo;
 use App\Models\Sponsor;
+use App\Models\Subscription;
 use App\Support\Arquivos;
 use App\Support\GaleriaDeRealizados;
 
@@ -69,6 +70,15 @@ class EventsController extends Controller
             'imagem' => Arquivos::ogDoEvento($event),
         ];
 
-        return view('events.event-details', compact('event', 'og'));
+        // Quem já se inscreveu vê a situação no lugar do "Inscreva-se".
+        // Cancelada não conta: ela pode se inscrever de novo.
+        $minhaInscricao = auth()->check()
+            ? Subscription::where('event_id', $event->id)
+                ->where('user_id', auth()->id())
+                ->whereIn('status', ['pending', 'paid'])
+                ->first()
+            : null;
+
+        return view('events.event-details', compact('event', 'og', 'minhaInscricao'));
     }
 }

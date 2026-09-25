@@ -62,6 +62,8 @@
   <section class="event-content">
 
     <aside class="event-side">
+      @include('events._acao-de-inscricao', ['completo' => true])
+
       <div class="event-info-box">
         <h3>Data</h3>
         <p>{{ \Carbon\Carbon::parse($event->event_date)->format('d/m/Y \à\s H:i') }}</p>
@@ -71,38 +73,6 @@
         <h3>Local</h3>
         <p>{{ $event->location }}</p>
       </div>
-
-      {{-- Prova já realizada ou com prazo encerrado não oferece inscrição: o
-           botão levaria a pessoa a um formulário que não vai aceitar nada.
-           Esconder aqui é só a metade visível — quem barra de verdade é o
-           SubscribeController, porque o endereço pode ser digitado à mão. --}}
-      @if ($event->aceitaInscricao())
-        <a href="/subscribe/event/{{ $event->id }}" class="cta-button">
-          Inscreva-se
-        </a>
-      @elseif ($event->jaAconteceu())
-        <div class="event-aviso event-aviso--realizado">
-          <strong>Evento realizado</strong>
-          <span>Aconteceu em {{ $event->event_date->format('d/m/Y') }}.</span>
-        </div>
-      @elseif (! $event->inscricoesAbertas())
-        <div class="event-aviso">
-          <strong>Inscrições encerradas</strong>
-          <span>O prazo terminou em {{ $event->registration_deadline->format('d/m/Y \à\s H:i') }}.</span>
-        </div>
-      @else
-        {{-- Datas abertas, mas nenhum lote vigente (ADR 0007): não é
-             "encerradas" — é "ainda não". Se há lote futuro, diz quando. --}}
-        <div class="event-aviso">
-          <strong>Inscrições ainda não abertas</strong>
-          @if ($proximo = $event->proximoLote())
-            <span>Abrem em {{ $proximo->starts_at->format('d/m/Y \à\s H:i') }}.</span>
-          @else
-            <span>Em breve.</span>
-          @endif
-        </div>
-      @endif
-
     </aside>
 
     <div class="event-details">
@@ -177,6 +147,10 @@
         @endif
         <p><strong>Encerramento das inscrições:</strong> {{ \Carbon\Carbon::parse($event->registration_deadline)->format('d/m/Y \à\s H:i') }}</p>
       </div>
+
+      {{-- A mesma ação do alto, para quem leu até o fim não precisar subir.
+           No celular ela some: lá o botão do alto já fica fixo no rodapé. --}}
+      @include('events._acao-de-inscricao', ['completo' => false])
 
     </div>
   </section>

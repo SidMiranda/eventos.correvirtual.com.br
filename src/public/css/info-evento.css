@@ -177,12 +177,20 @@
 /* CTA */
 
 .cta-button {
-  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 18px 16px;
   background: #000;
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
   cursor: pointer;
   transition: 0.2s ease;
 }
@@ -190,6 +198,18 @@
 .cta-button:hover {
   background: #222;
   transform: translateY(-2px);
+}
+
+/* Já inscrito: a situação no lugar do "Inscreva-se", levando às inscrições. */
+.cta-button--confirmada { background: #15803d; }
+.cta-button--confirmada:hover { background: #166534; }
+.cta-button--pendente { background: #f59e0b; color: #1f1300; }
+.cta-button--pendente:hover { background: #d97706; }
+
+/* A repetição no fim da página, abaixo do bloco "Inscrição". */
+.cta-button--rodape {
+  max-width: 420px;
+  margin-top: 8px;
 }
 
 /* ================= RESPONSIVO ================= */
@@ -253,7 +273,13 @@
     border-radius: 10px;
     width: auto;
     box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-    font-size: 16px;
+    font-size: 17px;
+  }
+
+  /* No celular o botão do alto já fica fixo no rodapé da tela: um segundo
+     fixo ficaria por cima dele. */
+  .cta-button--rodape {
+    display: none;
   }
 
   /* O CTA fixo ocupa a largura toda da faixa de baixo: o botão do WhatsApp

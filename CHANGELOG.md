@@ -6,6 +6,10 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Botão de inscrição na página do evento (2026-09-25)
+- **O botão subiu para o alto da coluna** (antes do bloco "Data") e ganhou uma **repetição no fim da página**, abaixo do bloco "Inscrição". Texto centralizado, maior e em caixa alta. No celular o de baixo some: o do alto já fica fixo no rodapé da tela.
+- **Quem já se inscreveu vê a situação no lugar do "Inscreva-se"**: "Inscrição confirmada" (verde) ou "Aguardando pagamento" (amarelo), os dois levando a "Minhas inscrições". Vale mesmo com o prazo encerrado; inscrição cancelada volta a mostrar "Inscreva-se".
+
 ### Menu do painel agrupado — fatia 3 (2026-09-24)
 - **"Eventos" virou um grupo** no menu lateral (accordion do template): Eventos, Modalidades, Kits, **Lotes** e **Categorias**. Abre sozinho em qualquer página do grupo. O menu estava crescendo demais, como o organizador apontou.
 - **Lotes e Categorias ganharam páginas gerais** (`/admin/lotes`, `/admin/categorias`), atravessando todos os eventos do organizador, com o mesmo seletor "Cadastrar em…" das modalidades e kits.
