@@ -112,20 +112,6 @@ class SubscribeController extends Controller
             ->withErrors(['inscricao' => $motivo]);
     }
 
-    public function mySubscriptions(Request $request)
-    {
-        // Busca as inscrições do usuário logado, filtrar por organizador e carrega a relação do evento
-        $subscriptions = Subscription::with(['event', 'modality', 'kit', 'coupon', 'ageCategory'])
-            ->where('user_id', auth()->id())
-            ->whereHas('event', function ($query) use ($request) {
-                $query->where('organizer_id', $request->current_organizer_id);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('subscriptions.my', compact('subscriptions'));
-    }
-
     public function subscribe(Request $request)
     {
         $eventId = $request->route('event_id');

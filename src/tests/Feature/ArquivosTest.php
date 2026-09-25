@@ -131,12 +131,6 @@ class ArquivosTest extends TestCase
 
             $caminho = str_replace('\\', '/', $arquivo->getPathname());
 
-            // components/my-subscriptions.blade.php (fora de components/app/) é
-            // duplicata órfã, não renderizada por ninguém — DEBT-003.
-            if (str_contains($caminho, 'views/components/my-subscriptions.blade.php')) {
-                continue;
-            }
-
             $conteudo = file_get_contents($arquivo->getPathname());
 
             if (preg_match("#file_exists\(public_path#", $conteudo)

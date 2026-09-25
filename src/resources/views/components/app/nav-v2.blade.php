@@ -21,7 +21,7 @@
 
                 <div class="cv-nav__auth">
                     @auth
-                        <a href="/my-subscriptions">Minhas inscrições</a>
+                        <a href="/minha-conta">Minha conta</a>
                         <span class="cv-nav__auth-user">{{ Auth::user()->name }}</span>
                         <form method="POST" action="/logout" class="cv-nav__logout-form">
                             @csrf

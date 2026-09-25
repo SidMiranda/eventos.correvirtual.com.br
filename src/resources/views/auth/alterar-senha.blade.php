@@ -29,7 +29,7 @@
                 <button type="submit" class="btn-primary">Salvar nova senha</button>
 
                 <div class="form-links">
-                    <a href="{{ url('/my-subscriptions') }}">Minhas inscrições</a>
+                    <a href="{{ route('conta.inscricoes') }}">Minha conta</a>
                     <a href="{{ url('/') }}">Voltar ao site</a>
                 </div>
             </form>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Conta\InscricoesDoAtletaController;
 use App\Http\Controllers\Subscriptions\SubscribeController;
 use App\Http\Controllers\Events\EventsController;
 use App\Http\Controllers\Subscriptions\PixController;
@@ -114,9 +115,14 @@ Route::post('/event-pay', [PixController::class, 'generatePix'])
 |--------------------------------------------------------------------------
 */
 
-Route::get('/my-subscriptions', [SubscribeController::class, 'mySubscriptions'])
-    ->middleware('auth')
-    ->name('subscriptions.my');
+// "Minha conta" (docs/specs/area-do-atleta.md). O endereço antigo continua
+// servindo a mesma tela, sem redirecionar: os e-mails já enviados apontam
+// para ele, e o aviso de "inscrição feita" vive no flash da sessão — um
+// redirecionamento a mais o consumiria antes de a tela abrir.
+Route::middleware('auth')->group(function () {
+    Route::get('/minha-conta', [InscricoesDoAtletaController::class, 'index'])->name('conta.inscricoes');
+    Route::get('/my-subscriptions', [InscricoesDoAtletaController::class, 'index'])->name('subscriptions.my');
+});
 
 Route::get('/subscribe/event/{event_id}', [SubscribeController::class, 'showSubscribeForm'])
     ->middleware('auth')

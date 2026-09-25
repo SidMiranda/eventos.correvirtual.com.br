@@ -1,45 +1,5 @@
-@extends('layouts.app')
-
-@section('title', 'Minhas Inscrições - Corre Virtual')
-
-@push('styles')
-  <link rel="stylesheet" href="{{ asset('css/top-bar.css') }}">
-  {{-- ?v={{ filemtime(...) }}: sem isso a mudança de estilo só aparece para
-       quem limpar o cache do navegador. --}}
-  <link rel="stylesheet" href="{{ asset('css/my-subscriptions.css') }}?v={{ filemtime(public_path('css/my-subscriptions.css')) }}">
-@endpush
-
-@section('content')
-    <div class="container">
-
-        <x-app.response-message />
-
-        @if($subscriptions->isEmpty())
-            <div class="empty-container">
-                <div class="empty-state-wrapper">
-                <h2 class="my-registrations-title">Minhas Inscrições</h2>
-                <div class="empty-registrations-card">
-                    <div class="empty-icon">🏃‍♂️</div>
-                    <p>Você ainda não possui nenhuma inscrição.</p>
-                    <a href="{{ url('/') }}" class="btn-back-calendar">Voltar para o calendário</a>
-                </div>
-                </div>
-            </div>
-        @else
-
-            <h2 class="my-registrations-title">Minhas Inscrições</h2>
-
-            <h3 class="section-title">Eventos Inscritos</h3>
-            <div class="registrations-list">
-
-                @foreach($subscriptions as $subscription)
-                <x-app.my-subscriptions :subscription="$subscription" />
-                @endforeach
-            </div>
-
-        @endif
-    </div>
-
+{{-- O aviso animado depois de inscrever, pagar ou cancelar: vem no flash
+     da sessão (modal_type), gravado pelo SubscribeController. --}}
     <!-- Modal Animado de Inscrição -->
     @if(session('modal_type'))
         <div id="subscriptionModal" class="subscription-modal-overlay">
@@ -149,4 +109,3 @@
             });
         </script>
     @endif
-@endsection

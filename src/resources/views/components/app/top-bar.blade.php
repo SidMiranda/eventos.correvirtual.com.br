@@ -13,9 +13,9 @@
                 <div class="d-inline font-weight-500">
                     @auth
                         <span>
-                            <a href="/my-subscriptions">
+                            <a href="/minha-conta">
 
-                                <span class="d-none d-md-inline">Minhas inscrições</span>
+                                <span class="d-none d-md-inline">Minha conta</span>
                             </a>
                         </span>
                     @else
@@ -29,7 +29,7 @@
         </li>
         @auth
             <li class="nav-item mr-3 d-md-none">
-                <a class="btn btn-icon btn-transparent-dark" href="/my-subscriptions" title="Minhas Inscrições">
+                <a class="btn btn-icon btn-transparent-dark" href="/minha-conta" title="Minha conta">
                     <i data-feather="check-square"></i>
                 </a>
             </li>
@@ -114,11 +114,11 @@
                 </h6>
                 @auth
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="/my-subscriptions">
+                    <a class="dropdown-item" href="/minha-conta">
                         <div class="dropdown-item-icon">
                             <i data-feather="check-square"></i>
                         </div>
-                        Minhas inscrições
+                        Minha conta
                     </a>
                     <a class="dropdown-item" href="{{ route('senha.editar') }}">
                         <div class="dropdown-item-icon">

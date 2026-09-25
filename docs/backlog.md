@@ -128,7 +128,7 @@ A migration define o enum como `pending|paid|cancelled` (2 L's), mas `SubscribeC
 
 **DEBT-002** — `SubscribeController_old.php`, `Subscription_old.php`, `routes/web_old.php` não têm nenhuma referência ativa no projeto, mas foram tocados em commits recentes (`dba40cb`) — **confirmar com o dono do projeto** antes de apagar, pode ser material de referência da migração ainda em uso mental.
 
-**DEBT-003** — `resources/views/components/my-subscriptions.blade.php` (fora de `components/app/`) e `components/app/old-top-bar.blade.php` são duplicatas órfãs. As views realmente usadas são `components/app/my-subscriptions.blade.php` e `components/app/top-bar.blade.php` (confirmado via grep nas views que usam `<x-app.*>`).
+**DEBT-003** — ~~`resources/views/components/my-subscriptions.blade.php`~~ (removido em 2026-09-25, junto com o card antigo, na "Minha conta") e `components/app/old-top-bar.blade.php` são duplicatas órfãs. As views realmente usadas são `components/app/my-subscriptions.blade.php` e `components/app/top-bar.blade.php` (confirmado via grep nas views que usam `<x-app.*>`).
 
 ### P3 — infraestrutura / qualidade
 

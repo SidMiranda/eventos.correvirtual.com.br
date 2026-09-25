@@ -6,6 +6,12 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Minha conta — fatia 1: inscrições (2026-09-25)
+- **"Minhas inscrições" virou "Minha conta"** (`/minha-conta`; o endereço antigo `/my-subscriptions` mostra a mesma tela, sem redirecionar, para não perder o aviso de "inscrição feita" nem quebrar os e-mails já enviados).
+- **Duas seções: Próximas e Realizadas.** Cada inscrição numa linha compacta com **miniatura** do evento no lugar do cartaz grande, data, modalidade/kit, camiseta, equipe, valor e situação.
+- **Pensada para celular**: botões de 44px, "Pagar" na linha inteira, Cancelar e Ver evento dividindo a de baixo. Pendente de prova que já passou não oferece mais Pagar/Cancelar.
+- Spec novo: `docs/specs/area-do-atleta.md`. Removidos a view antiga, o componente do card e a duplicata órfã do DEBT-003.
+
 ### Atleta PCD (2026-09-25)
 - **Checkbox "Sou PCD (pessoa com deficiência)" no cadastro** do atleta (`users.is_pcd`, padrão "não"). Só informação para o organizador, sem nenhuma regra de preço ou categoria (decisão do dono). Quem já tem conta fica "não" até existir a tela de perfil do atleta.
 - **No painel**: "PCD: Sim/Não" na ficha do atleta, selo "PCD" nas listas de atletas e de inscrições, filtro **"Só PCD"** nas inscrições (vale também para o PDF) e coluna **PCD** no relatório em PDF.

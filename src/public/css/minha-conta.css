@@ -1,0 +1,204 @@
+/* ===========================================================================
+   Minha conta — área do atleta (docs/specs/area-do-atleta.md)
+   ---------------------------------------------------------------------------
+   Mobile first: a regra base é o celular, onde a maioria compra e edita
+   (dono, 2026-09-25). O desktop só ganha largura e respiro, em min-width.
+   Botões com pelo menos 44px de altura: é o alvo de toque que o polegar
+   acerta sem zoom.
+   =========================================================================== */
+
+.conta {
+    max-width: 760px;
+    margin: 0 auto;
+    /* 96px embaixo: o botão flutuante do WhatsApp não cobre o último card. */
+    padding: 16px 14px 96px;
+    color: #0d1b2a;
+}
+
+.conta__titulo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 8px 0 16px;
+}
+
+.conta__secao { margin-bottom: 28px; }
+
+.conta__subtitulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #46586b;
+    margin: 0 0 10px;
+}
+
+.conta__subtitulo span {
+    background: #e7edf3;
+    color: #46586b;
+    border-radius: 999px;
+    padding: 1px 9px;
+    font-size: .8rem;
+}
+
+.conta__nada, .conta__vazio p { color: #5b6b7b; margin: 0 0 12px; }
+
+.conta__vazio {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,.05);
+}
+
+/* ---------------------------------------------------------------- inscrição */
+
+.insc {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #e8edf2;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+
+.insc__thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: block;
+}
+
+.insc__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.insc__corpo { min-width: 0; }
+
+.insc__titulo {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 4px;
+}
+
+.insc__meta {
+    font-size: .875rem;
+    color: #5b6b7b;
+    margin: 0 0 2px;
+}
+
+.insc__rodape {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.insc__valor {
+    font-weight: 700;
+    text-align: right;
+}
+
+.insc__valor small {
+    display: block;
+    font-size: .75rem;
+    font-weight: 400;
+    color: #1c7a4f;
+}
+
+/* As ações ocupam a largura toda embaixo, debaixo da miniatura também. */
+.insc__acoes {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+/* Pagar é a ação que importa: linha inteira. Sozinho, "Ver evento" também. */
+.insc__acoes .botao--primario,
+.insc__acoes > .botao:only-child { grid-column: 1 / -1; }
+
+.insc__acoes form { display: contents; }
+
+.insc--realizada { opacity: .85; }
+.insc--realizada .insc__thumb img { filter: grayscale(70%); }
+
+/* ---------------------------------------------------------------- selos */
+
+.selo {
+    font-size: .75rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+.selo--paga      { background: #dcfce7; color: #166534; }
+.selo--pendente  { background: #fef3c7; color: #92400e; }
+.selo--cancelada { background: #fee2e2; color: #b91c1c; }
+.selo--neutra    { background: #f1f5f9; color: #64748b; }
+
+/* ---------------------------------------------------------------- botões */
+/* Prefixados com .conta de propósito: o forms.css pinta de verde TODO
+   button[type=submit] do site (e com margem em cima), e .botao sozinho perde
+   para ele na especificidade. */
+
+.conta .botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: .95rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.conta .botao--primario { background: #0d1b2a; color: #fff; }
+.conta .botao--primario:hover { background: #1f3247; color: #fff; }
+.conta .botao--perigo   { background: #fff; color: #b91c1c; border-color: #f3c4c4; }
+.conta .botao--perigo:hover { background: #fef2f2; }
+.conta .botao--neutro   { background: #fff; color: #0d1b2a; border-color: #cfd8e2; }
+.conta .botao--neutro:hover { background: #f5f8fb; color: #0d1b2a; }
+
+.conta__vazio .botao { width: auto; }
+
+/* ---------------------------------------------------------------- desktop */
+
+@media (min-width: 640px) {
+    .conta { padding-top: 32px; }
+    .conta__titulo { font-size: 1.9rem; }
+
+    .insc {
+        grid-template-columns: 88px 1fr auto;
+        align-items: center;
+        padding: 14px 16px;
+    }
+
+    .insc__thumb { width: 88px; height: 88px; }
+
+    .insc__acoes {
+        grid-column: auto;
+        grid-template-columns: 1fr;
+        min-width: 150px;
+    }
+}
