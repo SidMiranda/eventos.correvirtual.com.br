@@ -102,6 +102,12 @@
                     <label class="custom-control-label small" for="desconto">Só com desconto</label>
                 </div>
 
+                <div class="custom-control custom-checkbox mr-3 mb-2 mb-sm-0">
+                    <input type="checkbox" class="custom-control-input" id="pcd" name="pcd" value="1"
+                           @checked($filtro->soPcd)>
+                    <label class="custom-control-label small" for="pcd">Só PCD</label>
+                </div>
+
                 <button class="btn btn-primary mb-2 mb-sm-0" type="submit">
                     <i data-feather="search" style="width:16px;height:16px;"></i>
                     <span class="ml-1">Filtrar</span>
@@ -147,6 +153,9 @@
                                         <a class="font-weight-500" href="{{ route('admin.atletas.show', $inscricao->user_id) }}">
                                             {{ $inscricao->user->name ?? 'Atleta removido' }}
                                         </a>
+                                        @if ($inscricao->user?->is_pcd)
+                                            <span class="badge badge-blue-soft text-blue ml-1">PCD</span>
+                                        @endif
                                         <div class="small text-muted">{{ $inscricao->user->email ?? '—' }}</div>
                                     </td>
                                     <td>

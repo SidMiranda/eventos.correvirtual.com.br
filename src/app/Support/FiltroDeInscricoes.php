@@ -29,6 +29,7 @@ final class FiltroDeInscricoes
         public readonly ?string $situacao,
         public readonly bool $comDesconto,
         public readonly string $busca,
+        public readonly bool $soPcd = false,
     ) {
     }
 
@@ -43,6 +44,7 @@ final class FiltroDeInscricoes
             situacao: array_key_exists($situacao, self::SITUACOES) ? $situacao : null,
             comDesconto: $request->boolean('desconto'),
             busca: trim((string) $request->query('busca')),
+            soPcd: $request->boolean('pcd'),
         );
     }
 
@@ -52,6 +54,7 @@ final class FiltroDeInscricoes
             ->when($this->evento, fn ($q) => $q->where('subscriptions.event_id', $this->evento))
             ->when($this->situacao, fn ($q) => $q->where('subscriptions.status', self::SITUACOES[$this->situacao]))
             ->when($this->comDesconto, fn ($q) => $q->where('subscriptions.discount_amount', '>', 0))
+            ->when($this->soPcd, fn ($q) => $q->whereHas('user', fn ($u) => $u->where('is_pcd', true)))
             ->when($this->busca !== '', function ($q) {
                 // Nome, e-mail ou CPF: quem procura um inscrito tem um desses
                 // três na mão. O CPF é comparado só pelos dígitos, porque no
@@ -72,6 +75,7 @@ final class FiltroDeInscricoes
         return $this->evento !== null
             || $this->situacao !== null
             || $this->comDesconto
+            || $this->soPcd
             || $this->busca !== '';
     }
 
@@ -88,6 +92,10 @@ final class FiltroDeInscricoes
             $partes[] = 'com desconto';
         }
 
+        if ($this->soPcd) {
+            $partes[] = 'só PCD';
+        }
+
         if ($this->busca !== '') {
             $partes[] = "busca por \"{$this->busca}\"";
         }
@@ -102,6 +110,7 @@ final class FiltroDeInscricoes
             'evento' => $this->evento,
             'situacao' => $this->situacao,
             'desconto' => $this->comDesconto ? 1 : null,
+            'pcd' => $this->soPcd ? 1 : null,
             'busca' => $this->busca !== '' ? $this->busca : null,
         ]);
     }

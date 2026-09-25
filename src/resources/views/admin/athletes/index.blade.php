@@ -58,6 +58,9 @@
                                         <a class="font-weight-500" href="{{ route('admin.atletas.show', $atleta->id) }}">
                                             {{ $atleta->name }}
                                         </a>
+                                        @if ($atleta->is_pcd)
+                                            <span class="badge badge-blue-soft text-blue ml-1">PCD</span>
+                                        @endif
                                         @if ($atleta->cpf)
                                             <div class="small text-muted">CPF {{ $atleta->cpf }}</div>
                                         @endif

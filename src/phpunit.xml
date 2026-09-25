@@ -18,6 +18,9 @@
         </include>
     </source>
     <php>
+        <!-- A suíte passou dos 128 MB padrão em 2026-09-25 (539 testes, pico
+             de 128,5 MB, com as imagens de OG em GD). Só nos testes. -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

@@ -26,6 +26,7 @@
                             'Nascimento' => $atleta->birth_date ? \Carbon\Carbon::parse($atleta->birth_date)->format('d/m/Y') : null,
                             'Sexo' => $sexo[$atleta->sex] ?? null,
                             'Cidade' => $atleta->city?->nomeCompleto(),
+                            'PCD' => $atleta->is_pcd ? 'Sim' : 'Não',
                             // Só aparece para quem se cadastrou menor de idade:
                             // é quem assina por ele.
                             'CPF do responsável' => $atleta->guardian_cpf,

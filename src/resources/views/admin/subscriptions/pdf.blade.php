@@ -60,6 +60,7 @@
                     <th style="width: 26px;">#</th>
                     <th>Atleta</th>
                     <th style="width: 92px;">CPF</th>
+                    <th style="width: 32px;" class="centro">PCD</th>
                     <th style="width: 96px;">Modalidade</th>
                     <th style="width: 96px;">Kit</th>
                     <th style="width: 72px;" class="direita">Valor</th>
@@ -75,6 +76,7 @@
                             <div class="menor">{{ $inscricao->user->email ?? '' }}</div>
                         </td>
                         <td>{{ $inscricao->user->cpf ?? '—' }}</td>
+                        <td class="centro">{{ $inscricao->user?->is_pcd ? 'Sim' : '—' }}</td>
                         <td>{{ $inscricao->modality->name ?? '—' }}</td>
                         <td>{{ $inscricao->kit->name ?? '—' }}</td>
                         <td class="direita">

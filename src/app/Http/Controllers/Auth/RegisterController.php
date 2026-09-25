@@ -94,6 +94,9 @@ class RegisterController extends Controller
             'email' => $request->email,
             'cpf' => $request->cpf,
             'guardian_cpf' => $request->guardian_cpf ?: null,
+            // Só informação para o organizador; checkbox desmarcado não vem
+            // no POST, e isso é "não".
+            'is_pcd' => $request->boolean('is_pcd'),
             'password' => Hash::make($request->password),
             'role' => 'athlete', // Já força o papel correto
             'active' => true,

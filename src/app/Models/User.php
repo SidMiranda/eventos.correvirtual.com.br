@@ -17,6 +17,7 @@ class User extends Authenticatable
         'password',
         'cpf',
         'guardian_cpf',
+        'is_pcd',
         'phone',
         'birth_date',
         'sex',
@@ -38,6 +39,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_pcd' => 'boolean',
         ];
     }
 

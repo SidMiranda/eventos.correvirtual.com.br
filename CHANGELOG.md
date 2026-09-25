@@ -6,6 +6,11 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Atleta PCD (2026-09-25)
+- **Checkbox "Sou PCD (pessoa com deficiência)" no cadastro** do atleta (`users.is_pcd`, padrão "não"). Só informação para o organizador, sem nenhuma regra de preço ou categoria (decisão do dono). Quem já tem conta fica "não" até existir a tela de perfil do atleta.
+- **No painel**: "PCD: Sim/Não" na ficha do atleta, selo "PCD" nas listas de atletas e de inscrições, filtro **"Só PCD"** nas inscrições (vale também para o PDF) e coluna **PCD** no relatório em PDF.
+- Testes: a suíte passou dos 128 MB de memória padrão; o `phpunit.xml` sobe o limite para 512 MB só nos testes.
+
 ### Painel: o banner do evento no cabeçalho (2026-09-25)
 - **Nas telas de um evento** (Dados, Modalidades, Kits, Lotes, Preços, Categorias) o cabeçalho mostra o **banner daquele evento** no lugar do degradê — trocar de evento troca a imagem. Pedido do dono: com o cabeçalho igual em tudo, não dava para saber em que evento se estava.
 - Título e nome do evento ficam numa **caixa escura translúcida** sobre a arte, para ler bem em qualquer imagem. Evento sem banner e telas gerais continuam com o degradê.

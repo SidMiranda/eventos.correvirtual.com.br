@@ -21,6 +21,8 @@
     .cidade-lista li.cidade-vazia { color: #666; cursor: default; }
     .cidade-lista li.cidade-vazia:hover { background: #fff; }
     .aviso-responsavel { font-size: 13px; color: #666; margin: -8px 0 12px; text-align: left; }
+    .campo-pcd { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 12px; font-size: 15px; color: #333; text-align: left; cursor: pointer; }
+    .campo-pcd input { width: 18px; height: 18px; margin: 0; flex: none; }
 </style>
 
 <div class="modal-overlay" style="display:flex">
@@ -121,6 +123,11 @@ required
     >
     <p class="aviso-responsavel">Quem tem menos de 18 anos precisa do CPF de um responsável.</p>
 </div>
+
+<label class="campo-pcd">
+    <input type="checkbox" name="is_pcd" value="1" @checked(old('is_pcd'))>
+    Sou PCD (pessoa com deficiência)
+</label>
 
 <input 
 type="password"
