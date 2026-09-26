@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Subscriptions;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Services\Cobranca\EscolhaDeConta;
 use App\Services\ConfirmacaoDeInscricao;
 use App\Services\MercadoPagoService;
 use App\Services\MercadoPagoWebhookSignature;
@@ -25,12 +26,21 @@ class MercadoPagoWebhookController extends Controller
         $queryParams = HeaderUtils::parseQuery($request->getQueryString() ?? '');
         $dataIdFromQuery = $queryParams['data.id'] ?? $queryParams['id'] ?? null;
 
-        $isValidSignature = MercadoPagoWebhookSignature::isValid(
+        // Duas aplicações podem notificar (ADR 0008): a de sempre (modelo
+        // antigo) e a da plataforma (pagamento feito pela conta conectada do
+        // organizador). Vale a assinatura de qualquer uma das duas; sem
+        // nenhuma válida, continua falhando fechado.
+        $segredos = array_filter([
+            config('services.mercadopago.webhook_secret'),
+            config('services.mercadopago.app.webhook_secret'),
+        ]);
+
+        $isValidSignature = collect($segredos)->contains(fn ($segredo) => MercadoPagoWebhookSignature::isValid(
             $request->header('x-signature'),
             $request->header('x-request-id'),
             $dataIdFromQuery,
-            config('services.mercadopago.webhook_secret')
-        );
+            $segredo
+        ));
 
         if (!$isValidSignature) {
             Log::warning('Webhook Mercado Pago rejeitado: assinatura ausente ou inválida.');
@@ -44,7 +54,12 @@ class MercadoPagoWebhookController extends Controller
         if ($paymentId) {
             try {
                 // 4. Consultar a API do Mercado Pago de forma segura
-                $payment = MercadoPagoService::getPayment($paymentId);
+                // Com a MESMA conta que criou o pagamento: um Pix da conta
+                // conectada do organizador só existe para o token dele.
+                $conta = EscolhaDeConta::paraPagamento(Payment::where('transaction_id', $paymentId)->first());
+                $payment = $conta->conectada()
+                    ? MercadoPagoService::getPaymentForAccount($paymentId, (string) $conta->token())
+                    : MercadoPagoService::getPayment($paymentId);
 
                 Log::info("Pagamento {$paymentId} consultado. Status: {$payment->status}");
 

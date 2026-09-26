@@ -40,6 +40,12 @@ class Organizer extends Model
         return $this->hasMany(Event::class);
     }
 
+    /** A conta Mercado Pago conectada pela tela "Cobrança" (ADR 0008), se houver. */
+    public function mercadoPagoConta()
+    {
+        return $this->hasOne(MercadoPagoConta::class);
+    }
+
     public function teams()
     {
         return $this->hasMany(Team::class);

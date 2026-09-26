@@ -6,7 +6,9 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Admin\CobrancaController as AdminCobrancaController;
 use App\Http\Controllers\Conta\InscricoesDoAtletaController;
+use App\Http\Controllers\MercadoPagoOAuthController;
 use App\Http\Controllers\Conta\PerfilDoAtletaController;
 use App\Http\Controllers\Subscriptions\SubscribeController;
 use App\Http\Controllers\Events\EventsController;
@@ -147,6 +149,13 @@ Route::post('/subscription/cancel', [SubscribeController::class, 'cancel'])
 
 Route::get('/subscriptions/{id}/success', [PixController::class, 'success'])->name('subscriptions.success');
 
+// A volta do OAuth do Mercado Pago — o redirect_uri fixo da aplicação da
+// plataforma. Fora do painel: pode cair num domínio sem a sessão de quem
+// clicou; quem manda é o state cifrado (ver MercadoPagoOAuthController).
+Route::get('/mercadopago/oauth/retorno', [MercadoPagoOAuthController::class, 'retorno'])
+    ->middleware('throttle:20,1')
+    ->name('mercadopago.oauth.retorno');
+
 /*
 |--------------------------------------------------------------------------
 | Painel administrativo do organizador
@@ -162,6 +171,10 @@ Route::middleware(['auth', 'organizer.admin'])
     ->group(function () {
 
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Cobrança: conectar a conta Mercado Pago do organizador (ADR 0008).
+        Route::get('cobranca', [AdminCobrancaController::class, 'index'])->name('cobranca.index');
+        Route::post('cobranca/conectar', [AdminCobrancaController::class, 'conectar'])->name('cobranca.conectar');
 
         Route::resource('eventos', AdminEventController::class)
             ->except(['show'])

@@ -6,6 +6,12 @@ Histórico anterior a este arquivo (todo o desenvolvimento inicial do projeto) p
 
 ## [Unreleased]
 
+### Cobrança com split no Mercado Pago (2026-09-26, ADR 0008)
+- **Novo item "Cobrança" no painel** (último do menu, ícone de cifrão): o organizador conecta a conta Mercado Pago dele por OAuth. Conectado, a tela mostra em que conta ele recebe, as taxas (plataforma R$ 0,70 a partir dos eventos de 2027 + tarifa do Mercado Pago no Pix, 0,99%) e o exemplo de R$ 100,00 → R$ 98,31.
+- **Pix pela conta conectada, com `application_fee`** só em evento de 2027 em diante; o valor da taxa vem de `platform_settings` (`php artisan plataforma:taxa`), sem deploy. **Sem conta conectada, nada muda**: o modelo antigo segue intacto.
+- Tokens cifrados no banco; renovação diária (`mercadopago:renovar-tokens`, com o agendador instalado no cron pelo deploy) e na hora de cobrar. Falha vira alerta (log crítico + e-mail).
+- Webhook consulta o pagamento com a conta que o criou e aceita a assinatura das duas aplicações. Cupom de 100% continua sem passar pelo Mercado Pago (agora com teste explícito).
+
 ### Atalho da Minha conta no celular (2026-09-25)
 - **Ícone de pessoa ao lado do hambúrguer** no menu da home, só no celular: leva à "Minha conta" (sem login, passa pelo login antes).
 

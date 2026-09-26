@@ -13,6 +13,8 @@ class Payment extends Model
     protected $fillable = [
         'subscription_id',
         'provider',
+        'mercado_pago_conta_id',
+        'application_fee',
         'transaction_id',
         'payment_method',
         'status',
@@ -23,6 +25,14 @@ class Payment extends Model
         'paid_at',
         'payload'
     ];
+
+    protected function casts(): array
+    {
+        return [
+            // Dinheiro com duas casas, como os valores da inscrição.
+            'application_fee' => 'decimal:2',
+        ];
+    }
 
     public function subscription()
     {

@@ -38,6 +38,23 @@ return [
     'mercadopago' => [
         'token' => env('MERCADOPAGO_ACCESS_TOKEN'),
         'webhook_secret' => env('MERCADOPAGO_WEBHOOK_SECRET'),
+
+        // A aplicação da PLATAFORMA (conta do Sidney), para o organizador
+        // conectar a conta dele por OAuth e a taxa ir no application_fee
+        // (ADR 0008). Sem client_id, a tela "Cobrança" só explica que falta
+        // configurar.
+        'app' => [
+            'client_id' => env('MERCADOPAGO_APP_CLIENT_ID'),
+            'client_secret' => env('MERCADOPAGO_APP_CLIENT_SECRET'),
+            'redirect_uri' => env('MERCADOPAGO_OAUTH_REDIRECT_URI'),
+            'webhook_secret' => env('MERCADOPAGO_APP_WEBHOOK_SECRET'),
+        ],
+    ],
+
+    // Para onde vai o alerta de cobrança parada (token que não renovou, Pix
+    // que não saiu com conta conectada). Ver App\Services\Cobranca\AlertaDeCobranca.
+    'alertas' => [
+        'cobranca_email' => env('ALERTA_COBRANCA_EMAIL'),
     ],
 
     'gemini' => [

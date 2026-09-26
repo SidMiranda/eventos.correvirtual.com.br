@@ -180,6 +180,9 @@
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-inscricoes .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-inscricoes .nav-link-icon .feather { color: var(--icone-inscricoes); }
 
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-cobranca .nav-link-icon,
+        .sidenav .sidenav-menu .nav .nav-link.nav-icone-cobranca .nav-link-icon .feather { color: #15803d; }
+
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-atletas .nav-link-icon,
         .sidenav .sidenav-menu .nav .nav-link.nav-icone-atletas .nav-link-icon .feather { color: var(--icone-atletas); }
 
@@ -376,6 +379,13 @@
                            href="{{ route('admin.sobre.edit') }}">
                             <div class="nav-link-icon"><i data-feather="info"></i></div>
                             Sobre nós
+                        </a>
+
+                        {{-- Por último, a pedido do dono: é configurado uma vez e depois só consultado. --}}
+                        <a class="nav-link nav-icone-cobranca {{ request()->routeIs('admin.cobranca.*') ? 'active' : '' }}"
+                           href="{{ route('admin.cobranca.index') }}">
+                            <div class="nav-link-icon"><i data-feather="dollar-sign"></i></div>
+                            Cobrança
                         </a>
 
                     </div>

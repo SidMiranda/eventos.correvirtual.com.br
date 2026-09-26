@@ -100,6 +100,23 @@ Entrega em fatias: a **fatia 1** (estrutura + painel) não muda o checkout; a
 **fatia 2** faz o fluxo do atleta ler a grade. Spec:
 `docs/specs/precos-lotes-e-categorias.md`.
 
+## Cobrança: dois modelos convivendo (ADR 0008, 2026-09-26)
+
+O Pix sai por um de dois caminhos, e só `App\Services\Cobranca\EscolhaDeConta`
+decide qual:
+
+- **Modelo antigo** — credencial única do `.env` (`MERCADOPAGO_ACCESS_TOKEN`),
+  dinheiro 100% no organizador. Vale para quem não conectou a conta.
+- **Marketplace** — o organizador conecta a conta Mercado Pago dele em
+  `/admin/cobranca` (OAuth da aplicação da plataforma); os tokens ficam
+  cifrados em `mercado_pago_contas`. O Pix sai com o token dele e, em evento
+  de 2027 em diante, leva `application_fee` = `platform_settings.plataforma_taxa_inscricao`.
+
+O `Payment` guarda por qual conta saiu e a taxa; o webhook consulta com a
+mesma conta e aceita a assinatura das duas aplicações. Tokens renovados pelo
+agendador (`mercadopago:renovar-tokens`, cron da VPS instalado pelo deploy) e
+na hora de cobrar. Spec: `docs/specs/cobranca-split-mercado-pago.md`.
+
 ## Ambientes
 
 | Ambiente | Como sobe | Banco |

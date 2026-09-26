@@ -82,4 +82,14 @@ jobs:
 
             docker exec corre_app php artisan optimize
 
+            # O agendador do Laravel (routes/console.php): hoje, a renovação
+            # diária dos tokens do Mercado Pago dos organizadores (ADR 0008) —
+            # token vencido é Pix que não sai. Idempotente: tira a linha antiga
+            # (se houver) e põe de novo, então rodar em todo deploy não duplica.
+            # As chaves com `|| true` são por causa do pipefail: sem crontab
+            # ainda, ou sem a linha, os comandos saem com erro sem ser erro.
+            LINHA_AGENDADOR='* * * * * docker exec corre_app php artisan schedule:run >> /dev/null 2>&1'
+            { { crontab -l 2>/dev/null || true; } | { grep -v 'corre_app php artisan schedule:run' || true; }; echo "$LINHA_AGENDADOR"; } | crontab -
+            echo "🕐 Agendador no cron: $(crontab -l | grep -c 'schedule:run') linha(s)"
+
             echo "✅ Deploy finalizado com sucesso!"

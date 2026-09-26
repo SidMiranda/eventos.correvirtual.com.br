@@ -85,6 +85,12 @@ Objetivo: site público bonito e funcional, um organizador, fluxo de inscrição
   - [ ] **Estoque por tamanho de camiseta** — hoje a troca só respeita o prazo. Entra como uma condição a mais em `AlteracaoDeInscricao::aceitaTamanho()` (e na inscrição).
   - [ ] **Troca de e-mail pelo atleta** — exige confirmar o endereço novo antes de trocar o login.
   - [ ] **Troca de modalidade ou kit** — muda o preço; precisa de regra de diferença (cobrar ou devolver).
+- [x] **Cobrança com split no Mercado Pago** — 2026-09-26, ADR 0008, spec `docs/specs/cobranca-split-mercado-pago.md`. Pendências:
+  - [ ] **Sidney: criar a aplicação no Mercado Pago e pôr as 5 variáveis no secret `APP_ENV`** (runbook, "Cobrança com split").
+  - [ ] **Alerta de cobrança na MATRIX** (`inbox/jade`, `urgente:`): o servidor não enxerga o Drive. Hoje é log crítico + e-mail. Decidir a ponte.
+  - [ ] Validar em produção com um Pix real de evento de 2027 (sandbox/teste) que o `application_fee` cai na conta da plataforma e que a notificação chega assinada com o segredo da aplicação.
+  - [ ] Desconectar a conta pelo painel (hoje, só revogando no Mercado Pago).
+  - [ ] `MERCADOPAGO_ACCESS_TOKEN` do `.env` é o mesmo para todo organizador sem conta conectada (inclusive o Bora Fitness) — com o OAuth isso deixa de importar para quem conectar.
 - [ ] Geração de número de peito (`bib_number`) após pagamento confirmado
 - [ ] BUG-007 (throttle em login/registro/verificação)
 - [ ] Papéis `organizer_admin` / `super_admin` (hoje só `athlete` é usado de fato)

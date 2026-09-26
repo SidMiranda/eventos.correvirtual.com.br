@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Services\MercadoPagoService;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Services\Cobranca\AlertaDeCobranca;
+use App\Services\Cobranca\EscolhaDeConta;
+use App\Services\Cobranca\TaxaDaPlataforma;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 class PixController extends Controller
@@ -43,11 +47,44 @@ class PixController extends Controller
         // (SubscribeController + PrecoDaInscricao). Não existe sobreposição
         // global de valor: os eventos de teste têm R$ 0,05 gravado como preço
         // real do kit, e os cadastrados pelo painel têm o preço deles.
-        $pix = MercadoPagoService::createPixPayment(
-            (float) $subscription->price,
-            auth()->user()->email,
-            $subscriptionId // Enviando o ID da inscrição como referência externa
-        );
+        // Com que conta cobrar (ADR 0008): a conectada do organizador, com a
+        // taxa da plataforma quando o evento é de 2027 em diante; sem conta
+        // conectada, o modelo de sempre, pelo .env, sem taxa.
+        $conta = EscolhaDeConta::paraOrganizador((int) $subscription->event->organizer_id);
+        $taxa = TaxaDaPlataforma::para($subscription, $conta);
+
+        if ($conta->conectada()) {
+            $pix = MercadoPagoService::createPixPaymentForAccount(
+                (float) $subscription->price,
+                auth()->user()->email,
+                $subscriptionId,
+                (string) $conta->token(),
+                $taxa,
+                url('/api/webhooks/mercadopago')
+            );
+
+            if (!$pix) {
+                AlertaDeCobranca::disparar('Pix não saiu pela conta conectada do organizador', [
+                    'organizer_id' => $subscription->event->organizer_id,
+                    'subscription_id' => $subscription->id,
+                    'valor' => $subscription->price,
+                    'taxa' => $taxa,
+                ]);
+            }
+        } else {
+            if ($subscription->event->event_date?->year >= TaxaDaPlataforma::A_PARTIR_DO_ANO) {
+                Log::warning('Evento com taxa da plataforma cobrado sem conta conectada: sai sem taxa.', [
+                    'organizer_id' => $subscription->event->organizer_id,
+                    'subscription_id' => $subscription->id,
+                ]);
+            }
+
+            $pix = MercadoPagoService::createPixPayment(
+                (float) $subscription->price,
+                auth()->user()->email,
+                $subscriptionId // Enviando o ID da inscrição como referência externa
+            );
+        }
 
         if (!$pix) {
             return redirect('/my-subscriptions')->withErrors([
@@ -58,6 +95,8 @@ class PixController extends Controller
         Payment::create([
             'subscription_id' => $subscriptionId,
             'provider' => 'mercadopago',
+            'mercado_pago_conta_id' => $conta->contaId(),
+            'application_fee' => $conta->conectada() ? $taxa : null,
             'payment_method' => 'pix',
             'status' => 'pending',
             'transaction_id' => $pix->id,

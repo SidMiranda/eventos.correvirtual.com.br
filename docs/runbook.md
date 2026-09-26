@@ -65,6 +65,36 @@ docker exec corre_app php artisan db:seed --force
 
 **Status atual**: `https://eventos.correvirtual.com.br` está no ar (VPS `143.95.218.62`, Hostgator) desde 2026-08-02. Certificado emitido via `certbot certonly --webroot -w src/public -d eventos.correvirtual.com.br` diretamente no host (não em container) — o container `nginx` só consome os certs que já existem em `/etc/letsencrypt`, montados read-only. Renovação automática já agendada pelo certbot (`systemctl list-timers | grep certbot`).
 
+## Cobrança com split (Mercado Pago, ADR 0008)
+
+**Configurar a aplicação da plataforma** (uma vez, pelo Sidney):
+1. No painel de desenvolvedor do Mercado Pago (conta da plataforma), criar a
+   aplicação e cadastrar o **redirect URI**:
+   `https://admin.correvirtual.com.br/mercadopago/oauth/retorno` — tem de ser
+   idêntico ao `MERCADOPAGO_OAUTH_REDIRECT_URI`.
+2. Na mesma aplicação, configurar o **webhook** para
+   `https://eventos.correvirtual.com.br/api/webhooks/mercadopago` (evento
+   "Pagamentos") e copiar a assinatura secreta.
+3. No secret `APP_ENV` do GitHub, acrescentar: `MERCADOPAGO_APP_CLIENT_ID`,
+   `MERCADOPAGO_APP_CLIENT_SECRET`, `MERCADOPAGO_OAUTH_REDIRECT_URI`,
+   `MERCADOPAGO_APP_WEBHOOK_SECRET` e `ALERTA_COBRANCA_EMAIL`. Segredo nunca
+   vai para a MATRIX nem para o repositório.
+4. Deploy (qualquer push). O botão "Conectar conta do Mercado Pago" aparece em
+   `/admin/cobranca` quando as três primeiras estão preenchidas.
+
+**Taxa da plataforma** — sem deploy:
+`docker exec corre_app php artisan plataforma:taxa` (mostra) ou
+`plataforma:taxa 0.80` (muda; vale a partir do próximo Pix).
+
+**Agendador** — o deploy instala, de forma idempotente, no crontab do usuário
+do SSH: `* * * * * docker exec corre_app php artisan schedule:run`. Hoje ele só
+roda `mercadopago:renovar-tokens` (todo dia, 04:10 UTC). Conferir:
+`crontab -l | grep schedule:run` na VPS.
+
+**Alerta** — token que não renova ou Pix que não sai pela conta conectada:
+log `CRITICAL` "ALERTA DE COBRANÇA" + e-mail para `ALERTA_COBRANCA_EMAIL`
+(no máximo um por hora para o mesmo problema).
+
 ## Backup do banco
 
 Roda sozinho: **cron da VPS, 03:20 todo dia**, via `/usr/local/bin/corre-backup.sh`. Faz `mysqldump` de `webcit29_eventos_prod` e `webcit29_eventos_dev`, comprime com gzip e guarda em `/opt/backups/corre/`, mantendo **14 dias**. A VPS é máquina diferente do banco (Hostgator), então a cópia já nasce fora do servidor de origem.
